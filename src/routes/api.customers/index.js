@@ -26,7 +26,7 @@ router.get(
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `SELECT * FROM company WHERE "userId" = $1;`,
+                `SELECT * FROM companies WHERE "userId" = $1;`,
                 [req.params.userId]
             );
 
@@ -64,7 +64,7 @@ router.post(
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `UPDATE company SET address = $1, phone = $2, country = $3 WHERE "userId" = $4 RETURNING *;`,
+                `UPDATE companies SET address = $1, phone = $2, country = $3 WHERE "userId" = $4 RETURNING *;`,
                 [address, phone, country, req.params.userId]
             );
             console.log(rows);
@@ -104,7 +104,7 @@ router.post(
             const filePath = await repositoryStorageImg._saveImage(logo);
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `UPDATE company SET logo = $1 WHERE "userId" = $2 RETURNING logo;`,
+                `UPDATE companies SET logo = $1 WHERE "userId" = $2 RETURNING logo;`,
                 [filePath, req.params.userId]
             );
 
