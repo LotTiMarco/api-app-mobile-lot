@@ -18,6 +18,8 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "express": "^4.18.2",
+    "firebase": "^10.7.1",
+    "firebase-admin": "^12.0.0",
     "jsonwebtoken": "^9.0.2",
     "mkdirp": "^3.0.1",
     "pg": "^8.11.3",

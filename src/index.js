@@ -8,6 +8,7 @@ import config from './config.js';
 import apiAuth from './routes/api.auth/index.js';
 import apiCustomers from "./routes/api.customers/index.js";
 import apiDocuments from "./routes/api.documents/index.js";
+import apiNotifications from "./routes/api.notifications/index.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,17 +24,18 @@ app.use(express.json());
 
 // Endpoint raiz
 app.get('/', async (req, res) => {
-    res.status(200).json({ status: 'success', message: "BIENVENIDO AL BACKEND" });
+    return res.status(200).json({ status: 'success', message: "BIENVENIDO AL BACKEND" });
 })
 
 // Routes
 app.use('/api.auth', apiAuth);
 app.use('/api.customers', apiCustomers);
 app.use('/api.documents', apiDocuments);
+app.use('/api.notifications', apiNotifications);
 
 app.use((err, req, res, next) => {
     console.error(err.detail, err.message);
-    res.status(500).json({ status: "error", message: `Hubo un problema en el servidor: ${err.message}`, code: "internal_server_error" });
+    return res.status(500).json({ status: "error", message: `Hubo un problema en el servidor: ${err.message}`, code: "internal_server_error" });
 });
 
 // Starting the server
