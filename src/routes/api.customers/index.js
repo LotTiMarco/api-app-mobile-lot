@@ -11,7 +11,7 @@ const repositoryStorageImg = new RepositoryServerStorageImg()
 
 router.get('/', async (req, res, next) => {
     try {
-        res.status(200).json({ status: 'success', message: "API PARA EMPRESAS" });
+        return res.status(200).json({ status: 'success', message: "API PARA EMPRESAS" });
     } catch (error) {
         next(error);
     }
@@ -31,12 +31,12 @@ router.get(
             );
 
             if (rows.length > 0) {
-                res.status(200).json({ status: 'success', data: rows[0] });
+                return res.status(200).json({ status: 'success', data: rows[0] });
             } else {
-                res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
             }
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }
@@ -70,12 +70,12 @@ router.post(
             console.log(rows);
 
             if (rows.length > 0) {
-                res.status(204).json({ status: 'success' });
+                return res.status(204).json({ status: 'success' });
             } else {
-                res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
             }
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }
@@ -109,12 +109,12 @@ router.post(
             );
 
             if (rows.length > 0) {
-                res.status(200).json({ status: 'success', data: rows[0] });
+                return res.status(200).json({ status: 'success', data: rows[0] });
             } else {
-                res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
             }
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }

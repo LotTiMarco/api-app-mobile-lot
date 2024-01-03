@@ -31,10 +31,15 @@ export default class RepositoryPostgre extends IRepositoryDatabase {
 
     async disconnect() {
         try {
-            await this._connection.release();
-            await this._pool.end();
+            if (this._connection) {
+                await this._connection.release();
+            }
         } catch (error) {
             throw error;
+        } finally {
+            if (this._pool) {
+                await this._pool.end();
+            }
         }
     }
 

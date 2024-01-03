@@ -11,7 +11,7 @@ const repositoryStorageImg = new RepositoryServerStorageImg()
 
 router.get('/', async (req, res, next) => {
     try {
-        res.status(200).json({ status: 'success', message: "API PARA DOCUMENTOS" });
+        return res.status(200).json({ status: 'success', message: "API PARA DOCUMENTOS" });
     } catch (error) {
         next(error);
     }
@@ -36,12 +36,12 @@ router.get(
                 rows.forEach(row => {
                     years.push(row.year)
                 });
-                res.status(200).json({ status: 'success', data: { years: years} });
+                return res.status(200).json({ status: 'success', data: { years: years} });
             } else {
-                res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
             }
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }
@@ -71,12 +71,12 @@ router.get(
                 rows.forEach(row => {
                     files.push(row.fileIndex)
                 });
-                res.status(200).json({ status: 'success', data: { files: files} });
+                return res.status(200).json({ status: 'success', data: { files: files} });
             } else {
-                res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
             }
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }
@@ -152,7 +152,7 @@ router.get(
                 [req.params.userId, req.params.year, req.params.fileIndex]
             );
 
-            res.status(200).json({
+            return res.status(200).json({
                 status: 'success',
                 data: {
                     quotes: quotes,
@@ -164,7 +164,7 @@ router.get(
             });
 
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }
@@ -204,7 +204,7 @@ router.get(
                 [req.params.userId, req.params.year, req.params.fileIndex]
             );
 
-            res.status(200).json({
+            return res.status(200).json({
                 status: 'success',
                 data: {
                     monitoringPlans: monitoringPlans,
@@ -213,7 +213,7 @@ router.get(
             });
 
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }
@@ -289,7 +289,7 @@ router.get(
                 [req.params.userId, req.params.year, req.params.fileIndex]
             );
 
-            res.status(200).json({
+            return res.status(200).json({
                 status: 'success',
                 data: {
                     quotes: quotes,
@@ -301,7 +301,7 @@ router.get(
             });
 
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }
@@ -341,7 +341,7 @@ router.get(
                 [req.params.userId, req.params.year, req.params.fileIndex]
             );
 
-            res.status(200).json({
+            return res.status(200).json({
                 status: 'success',
                 data: {
                     monitoringPlans: monitoringPlans,
@@ -350,7 +350,7 @@ router.get(
             });
 
         } catch (error) {
-            res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
         }

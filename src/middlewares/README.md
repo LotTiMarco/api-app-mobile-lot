@@ -19,7 +19,9 @@ router.get('/ruta', allowRoles(['admin', 'user']), (req, res) => {
 
 Este middleware permite filtrar las rutas que pueden ser accedidas por un usuario autenticado.
 
-**Importante:** Este middleware agrega a la request los parametros userId y userRole.
+**Importante:** 
+
+Este middleware agrega a la request las claves **userId** y **userRole**.
 
 ### Uso
 
@@ -27,6 +29,8 @@ Este middleware permite filtrar las rutas que pueden ser accedidas por un usuari
 const { checkAuth } = require('../middlewares/checkAuth');
 
 router.get('/ruta', checkAuth, (req, res) => {
+    // const userId = req.userId;
+    // const userRole = req.userRole;
     // ...
 });
 ```
