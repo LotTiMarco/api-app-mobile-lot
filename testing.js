@@ -89,7 +89,7 @@ const TESTcheckParamsExistence = (req, res, next) => {
 
 // Endpoint raiz
 app.get('/', (req, res) => {
-    res.status(200).json({ status: 'success', message: "BIENVENIDO AL BACKEND" });
+    return res.status(200).json({ status: 'success', message: "BIENVENIDO AL BACKEND" });
 })
 
 // Endpoint para iniciar sesión
@@ -110,7 +110,7 @@ app.post('/login', (req, res) => {
     }
 
     const { accessToken, userId, userRole } = usuario;
-    res.status(201).json({ status: 'success', data: { accessToken, userId, userRole } });
+    return res.status(201).json({ status: 'success', data: { accessToken, userId, userRole } });
 });
 
 // Endpoint para obtener datos de empresa
@@ -122,7 +122,7 @@ app.get('/api.customers/:userId/profile', TESTcheckAuth, (req, res) => {
         return res.status(404).json({ status: 'error', message: 'Recurso no encontrado.', code: 'resource_not_found' });
     }
 
-    res.status(200).json({ status: 'success', data: empresa });
+    return res.status(200).json({ status: 'success', data: empresa });
 });
 
 // Endpoint para actualizar datos de empresa
@@ -141,7 +141,7 @@ app.post('/api.customers/:userId/profile', TESTcheckAuth, express.json(), (req, 
     empresa.country = country || empresa.country;
     empresa.logo = logo || empresa.logo;
 
-    res.status(204).send();
+    return res.status(204).send();
 });
 
 // Endpoint para obtener años de documentos
