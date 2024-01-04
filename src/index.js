@@ -7,6 +7,8 @@ import config from './config.js';
 
 import apiAuth from './routes/api.auth/index.js';
 import apiCustomers from "./routes/api.customers/index.js";
+import apiAuditors from "./routes/api.auditors/index.js";
+import apiCommercials from "./routes/api.commercials/index.js";
 import apiDocuments from "./routes/api.documents/index.js";
 import apiNotifications from "./routes/api.notifications/index.js";
 
@@ -18,11 +20,9 @@ app.set('port', process.env.PORT || 5000);
 
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(config.application.cors.server));
-app.use('/uploads', express.static('uploads')); // Ruta relativa, requiere iniciar el servidor desde la raiz del proyecto
-console.log(path.join(__dirname, 'uploads'));
 app.use(express.json());
 
-// Endpoint raiz
+// Endpoint root
 app.get('/', async (req, res) => {
     return res.status(200).json({ status: 'success', message: "BIENVENIDO AL BACKEND" });
 })
@@ -30,8 +30,14 @@ app.get('/', async (req, res) => {
 // Routes
 app.use('/api.auth', apiAuth);
 app.use('/api.customers', apiCustomers);
+app.use('/api.auditors', apiAuditors);
+app.use('/api.commercials', apiCommercials);
 app.use('/api.documents', apiDocuments);
 app.use('/api.notifications', apiNotifications);
+
+// Static files
+app.use('/uploads', express.static('uploads')); // Ruta relativa, requiere iniciar el servidor desde la raiz del proyecto
+console.log(path.join(__dirname, 'uploads'));
 
 app.use((err, req, res, next) => {
     console.error(err.detail, err.message);

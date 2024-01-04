@@ -11,7 +11,7 @@ const repositoryStorageImg = new RepositoryServerStorageImg()
 
 router.get('/', async (req, res, next) => {
     try {
-        return res.status(200).json({ status: 'success', message: "API PARA EMPRESAS" });
+        return res.status(200).json({ status: 'success', message: "API PARA AREA COMERCIAL" });
     } catch (error) {
         next(error);
     }
@@ -21,12 +21,12 @@ router.get(
     '/:userId/profile',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['admin', 'commercial']),
     async (req, res, next) => {
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `SELECT * FROM companies WHERE "userId" = $1;`,
+                `SELECT * FROM persons WHERE "userId" = $1;`,
                 [req.params.userId]
             );
 
@@ -47,7 +47,7 @@ router.post(
     '/:userId/profile',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['admin', 'commercial']),
     async (req, res, next) => {
         const { update } = req.body;
 
@@ -55,7 +55,7 @@ router.post(
             return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
         }
 
-        const { address, phone} = update;
+        const { address, phone } = update;
 
         if (!address || !phone ) {
             return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
@@ -64,7 +64,7 @@ router.post(
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `UPDATE companies SET address = $1, phone = $2 WHERE "userId" = $3 RETURNING *;`,
+                `UPDATE persons SET address = $1, phone = $2 WHERE "userId" = $3 RETURNING *;`,
                 [address, phone, req.params.userId]
             );
             console.log(rows);
@@ -83,15 +83,15 @@ router.post(
 );
 
 router.get(
-    '/:userId/profile/logo',
+    '/:userId/profile/photo',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['admin', 'commercial']),
     async (req, res, next) => {
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `SELECT logo FROM companies WHERE "userId" = $1;`,
+                `SELECT logo FROM persons WHERE "userId" = $1;`,
                 [req.params.userId]
             );
 
@@ -109,10 +109,10 @@ router.get(
 )
 
 router.post(
-    '/:userId/profile/logo',
+    '/:userId/profile/photo',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['admin', 'commercial']),
     async (req, res, next) => {
         try {
             await repositoryDB.connect();
@@ -129,7 +129,7 @@ router.post(
 
             const filePath = await repositoryStorageImg._saveImage(logo);
             const { rows } = await repositoryDB.query(
-                `UPDATE companies SET logo = $1 WHERE "userId" = $2 RETURNING logo;`,
+                `UPDATE persons SET logo = $1 WHERE "userId" = $2 RETURNING logo;`,
                 [filePath, req.params.userId]
             );
 
