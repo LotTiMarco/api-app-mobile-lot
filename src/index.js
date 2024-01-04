@@ -1,14 +1,15 @@
 import 'dotenv/config';
+import express from 'express';
 import cors from 'cors';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import express from 'express';
 import config from './config.js';
 
 import apiAuth from './routes/api.auth/index.js';
 import apiCustomers from "./routes/api.customers/index.js";
 import apiAuditors from "./routes/api.auditors/index.js";
 import apiCommercials from "./routes/api.commercials/index.js";
+import apiUsers from "./routes/api.users/index.js";
 import apiDocuments from "./routes/api.documents/index.js";
 import apiNotifications from "./routes/api.notifications/index.js";
 
@@ -32,6 +33,7 @@ app.use('/api.auth', apiAuth);
 app.use('/api.customers', apiCustomers);
 app.use('/api.auditors', apiAuditors);
 app.use('/api.commercials', apiCommercials);
+app.use('/api.users', apiUsers);
 app.use('/api.documents', apiDocuments);
 app.use('/api.notifications', apiNotifications);
 
