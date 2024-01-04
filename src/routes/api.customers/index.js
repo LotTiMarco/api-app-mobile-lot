@@ -57,14 +57,14 @@ router.post(
 
         const { address, phone, country } = update;
 
-        if (!address || !phone || !country) {
+        if (!address || !phone ) {
             return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
         }
 
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `UPDATE companies SET address = $1, phone = $2, country = $3 WHERE "userId" = $4 RETURNING *;`,
+                `UPDATE companies SET address = $1, phone = $2 WHERE "userId" = $3 RETURNING *;`,
                 [address, phone, country, req.params.userId]
             );
             console.log(rows);
@@ -82,27 +82,52 @@ router.post(
     }
 );
 
+router.get(
+    '/:userId/profile/logo',
+    validateURLParams('userId'),
+    checkAuth,
+    allowRoles(['admin', 'customer']),
+    async (req, res, next) => {
+        try {
+            await repositoryDB.connect();
+            const { rows } = await repositoryDB.query(
+                `SELECT logo FROM companies WHERE "userId" = $1;`,
+                [req.params.userId]
+            );
+
+            if (rows.length > 0) {
+                return res.status(200).json({ status: 'success', data: rows[0] });
+            } else {
+                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+            }
+        } catch (error) {
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+        } finally {
+            await repositoryDB.disconnect();
+        }
+    }
+)
+
 router.post(
     '/:userId/profile/logo',
     validateURLParams('userId'),
     checkAuth,
     allowRoles(['customer']),
     async (req, res, next) => {
-        const { update } = req.body;
-
-        if (!update) {
-            return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
-        }
-
-        const { logo } = update;
-
-        if (!logo) {
-            return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
-        }
-
         try {
-            const filePath = await repositoryStorageImg._saveImage(logo);
             await repositoryDB.connect();
+
+            const { update } = req.body;
+            if (!update) {
+                return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
+            }
+
+            const { logo } = update;
+            if (!logo) {
+                return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
+            }
+
+            const filePath = await repositoryStorageImg._saveImage(logo);
             const { rows } = await repositoryDB.query(
                 `UPDATE companies SET logo = $1 WHERE "userId" = $2 RETURNING logo;`,
                 [filePath, req.params.userId]
