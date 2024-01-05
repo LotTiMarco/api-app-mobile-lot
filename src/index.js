@@ -3,7 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { readFile } from 'fs/promises';
 import config from './config.js';
+
+import swaggerUi from 'swagger-ui-express';
 
 import apiAuth from './routes/api.auth/index.js';
 import apiCustomers from "./routes/api.customers/index.js";
@@ -41,6 +44,51 @@ app.use('/api.notifications', apiNotifications);
 app.use('/uploads', express.static('uploads')); // Ruta relativa, requiere iniciar el servidor desde la raiz del proyecto
 console.log(path.join(__dirname, 'uploads'));
 
+// Swagger
+
+app.get("/docs/swagger.json", async (req, res) => {
+    try {
+        const swaggerDocument = JSON.parse(
+            await readFile(
+                new URL('./../docs/swagger.json', import.meta.url)
+            )
+        );
+        swaggerDocument.host = req.get('host');
+        res.json(swaggerDocument)
+    } catch (error) {
+        return res.status(500).json({ status: "error", message: `Hubo un problema en el servidor: ${error.message}`, code: "internal_server_error" });
+    }
+});
+
+// SWAGGER UI
+const options = {
+    swaggerOptions: {
+        url: "/docs/swagger.json",
+    },
+}
+app.use('/docs', swaggerUi.serveFiles(null, options), swaggerUi.setup(null, options));
+
+// RAPIDOC
+app.get('/v2/docs', (req, res) => {
+    const swaggerRapidoc = `
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+    </head>
+    <body>
+      <rapi-doc
+        spec-url="${req.protocol}://${req.hostname}/docs/swagger.json"
+        render-style = "read"
+        show-header = 'false'
+        style = "height:100vh; width:100%"
+      > </rapi-doc>
+    </body>
+    </html>
+    `
+    res.send(swaggerRapidoc);
+})
 app.use((err, req, res, next) => {
     console.error(err.detail, err.message);
     return res.status(500).json({ status: "error", message: `Hubo un problema en el servidor: ${err.message}`, code: "internal_server_error" });

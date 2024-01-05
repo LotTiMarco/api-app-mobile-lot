@@ -7,6 +7,14 @@ const router = Router();
 const repository = new RepositoryPostgre();
 
 router.get('/', async (req, res, next) => {
+    /*#swagger.tags = ['Security']
+    ##swagger.operationId = 'api.auth/'
+    #swagger.description = 'Endpoint root for security'
+    #swagger.responses[200] = {
+        status: 'success',
+        message: 'API PARA AUTENTICACION'
+    }
+    */
     try {
         return res.status(200).json({ status: 'success', message: "API PARA AUTENTICACION" });
     } catch (error) {
@@ -15,16 +23,22 @@ router.get('/', async (req, res, next) => {
 });
 
 router.post('/login',async (req, res, next) => {
-    //decode base64
-    const auth = req.headers['authorization'];
-    const base64Credentials = auth.split(' ')[1];
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-    const [email, password] = credentials.split(':');
-
-    //console.log(email, password);
-
+    /*#swagger.tags = ['Security']
+     ##swagger.operationId = 'api.auth/login'
+     #swagger.description = 'Endpoint for login'
+     #swagger.responses[200] = {
+     status: 'success',
+     message: 'login'
+     }
+     */
     try {
         await repository.connect();
+        //decode base64
+        const auth = req.headers['authorization'];
+        const base64Credentials = auth.split(' ')[1];
+        const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+        const [email, password] = credentials.split(':');
+
         const { rows } = await repository.query(
             `SELECT "userId", "userRole", password FROM users WHERE email = $1;`,
             [email]
