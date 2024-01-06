@@ -7,13 +7,17 @@ const router = Router();
 const repository = new RepositoryPostgre();
 
 router.get('/', async (req, res, next) => {
-    /*#swagger.tags = ['Security']
-    ##swagger.operationId = 'api.auth/'
+    /*
+    #swagger.tags = ['Seguridad']
+    #swagger.operationId = 'api.auth/'
+    #swagger.summary = 'Endpoint raíz para seguridad'
     #swagger.description = 'Endpoint root for security'
     #swagger.responses[200] = {
         status: 'success',
         message: 'API PARA AUTENTICACION'
     }
+    #swagger.deprecated = false
+    #swagger.ignore = true
     */
     try {
         return res.status(200).json({ status: 'success', message: "API PARA AUTENTICACION" });
@@ -22,15 +26,38 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-router.post('/login',async (req, res, next) => {
-    /*#swagger.tags = ['Security']
-     ##swagger.operationId = 'api.auth/login'
-     #swagger.description = 'Endpoint for login'
-     #swagger.responses[200] = {
-     status: 'success',
-     message: 'login'
-     }
-     */
+
+router.post('/login', async (req, res, next) => {
+    /*
+    #swagger.tags = ['Seguridad']
+    #swagger.operationId = 'api.auth/login'
+    #swagger.summary = 'Endpoint para login'
+    #swagger.description = 'Endpoint para obtener id de usuario, rol y token de acceso.'
+    #swagger.security = [{
+        "basicAuth": []
+    }]
+    #swagger.responses[200] = {
+        schema:{
+            $ref: "#/components/responses/LoginResponse"
+        },
+        example: {
+        status: "success",
+            data: {
+                userId: "...",
+                userRole: "...",
+                accessToken: "..."
+            }
+        }
+    }
+    #swagger.responses[401] = {
+        schema: { $ref: "#/components/responses/UnauthorizedError" },
+    }
+    #swagger.responses[500] = {
+        schema: { $ref: "#/components/responses/InternalServerError" },
+    }
+    #swagger.deprecated = false
+    #swagger.ignore = false
+    */
     try {
         await repository.connect();
         //decode base64
@@ -52,7 +79,8 @@ router.post('/login',async (req, res, next) => {
                     userRole: rows[0].userRole,
                 };
 
-                payload.accessToken = createJWT(payload);
+                payload.accessToken = createJWT(payload); // bearer token
+
                 return res.status(200).json({ status: 'success', data: payload });
             } else {
                 return res.status(401).json({
