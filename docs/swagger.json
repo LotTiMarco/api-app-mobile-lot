@@ -736,83 +736,139 @@
         }
       }
     },
-    "/api.users/": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api.users/all": {
       "get": {
-        "description": "",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Endpoint para obtener todos los usuarios",
+        "description": "Endpoint para obtener todos los usuarios del sistema, con paginación.",
+        "operationId": "api.users/all",
         "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "authorization",
             "in": "header",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Número de elementos por página(10 por defecto, máximo 50)",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "example": {
+              "status": "success",
+              "data": [
+                {
+                  "userRole": "...",
+                  "userId": "...",
+                  "email": "...",
+                  "name": "..."
+                }
+              ],
+              "pageCount": 1,
+              "itemCount": 1,
+              "pages": [
+                {
+                  "page": 1,
+                  "url": "/api/users/all?page=1"
+                },
+                {
+                  "page": 2,
+                  "url": "/api/users/all?page=2"
+                }
+              ],
+              "has_more": false
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/AllUsersResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/AllUsersResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/api.users/all/role/{userRole}": {
+    "/api.users/{role}": {
       "get": {
-        "description": "",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Endpoint para obtener todos los usuarios de un rol",
+        "description": "Endpoint para obtener todos los usuarios de un rol (customer, auditor, commercial).",
+        "operationId": "api.users/{userRole}",
         "parameters": [
           {
-            "name": "userRole",
+            "name": "role",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
+            },
+            "description": "Rol de usuario"
           },
           {
             "name": "authorization",
@@ -820,23 +876,229 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Número de elementos por página(10 por defecto, máximo 50)",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "example": {
+              "status": "success",
+              "data": [
+                {
+                  "userRole": "...",
+                  "userId": "...",
+                  "email": "...",
+                  "name": "..."
+                }
+              ],
+              "pageCount": 1,
+              "itemCount": 1,
+              "pages": [
+                {
+                  "page": 1,
+                  "url": "/api/users/all?page=1"
+                },
+                {
+                  "page": 2,
+                  "url": "/api/users/all?page=2"
+                }
+              ],
+              "has_more": false
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/AllUsersRoleResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/AllUsersRoleResponse"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api.users/{role}/new": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Endpoint para crear un nuevo usuario",
+        "description": "Endpoint para crear un nuevo usuario (customer, auditor, commercial).",
+        "operationId": "api.users/{userRole}/new",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Rol de usuario"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NewUserResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NewUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/NewCompany"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NewPerson"
+                  }
+                ]
+              },
+              "examples": {
+                "newCompany": {
+                  "$ref": "#/components/examples/newCompany"
+                },
+                "newPerson": {
+                  "$ref": "#/components/examples/newPerson"
+                }
+              }
+            }
           }
         }
       }
@@ -1471,39 +1733,116 @@
   },
   "components": {
     "schemas": {
-      "Profile": {
+      "NewCompany": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
+          "credentials": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "example": "..."
+              },
+              "password": {
+                "type": "string",
+                "example": "..."
+              }
+            }
           },
-          "status": {
-            "type": "string",
-            "example": ""
-          }
-        },
-        "xml": {
-          "name": "Profile"
-        }
-      },
-      "Profiles": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "number",
-              "example": 1
-            },
-            "status": {
-              "type": "string",
-              "example": ""
+          "profile": {
+            "type": "object",
+            "properties": {
+              "companyName": {
+                "type": "string",
+                "example": "..."
+              },
+              "ruc": {
+                "type": "string",
+                "example": "..."
+              },
+              "address": {
+                "type": "string",
+                "example": "..."
+              },
+              "legalRepresentative": {
+                "type": "string",
+                "example": "..."
+              },
+              "email": {
+                "type": "string",
+                "example": "..."
+              },
+              "phone": {
+                "type": "string",
+                "example": "..."
+              },
+              "country": {
+                "type": "string",
+                "example": "..."
+              },
+              "logo": {
+                "type": "string",
+                "example": "base64()"
+              }
             }
           }
         },
         "xml": {
-          "name": "Profiles"
+          "name": "NewCompany"
+        }
+      },
+      "NewPerson": {
+        "type": "object",
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "example": "..."
+              },
+              "password": {
+                "type": "string",
+                "example": "..."
+              }
+            }
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "example": "..."
+              },
+              "dni": {
+                "type": "string",
+                "example": "..."
+              },
+              "address": {
+                "type": "string",
+                "example": "..."
+              },
+              "email": {
+                "type": "string",
+                "example": "..."
+              },
+              "phone": {
+                "type": "string",
+                "example": "..."
+              },
+              "country": {
+                "type": "string",
+                "example": "..."
+              },
+              "photo": {
+                "type": "string",
+                "example": "base64()"
+              }
+            }
+          }
+        },
+        "xml": {
+          "name": "NewPerson"
         }
       }
     },
@@ -1515,6 +1854,45 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer"
+      }
+    },
+    "examples": {
+      "newCompany": {
+        "value": {
+          "credentials": {
+            "email": "...",
+            "password": "..."
+          },
+          "profile": {
+            "companyName": "...",
+            "ruc": "...",
+            "address": "...",
+            "legalRepresentative": "...",
+            "email": "...",
+            "phone": "...",
+            "country": "...",
+            "logo": "base64()"
+          }
+        },
+        "summary": "New company"
+      },
+      "newPerson": {
+        "value": {
+          "credentials": {
+            "email": "...",
+            "password": "..."
+          },
+          "profile": {
+            "fullName": "...",
+            "dni": "...",
+            "address": "...",
+            "email": "...",
+            "phone": "...",
+            "country": "...",
+            "photo": "base64()"
+          }
+        },
+        "summary": "New person"
       }
     },
     "responses": {
@@ -1546,6 +1924,284 @@
                 "example": "..."
               }
             }
+          }
+        }
+      },
+      "AllUsersResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Data",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userRole": {
+                  "type": "string",
+                  "description": "User role",
+                  "example": "..."
+                },
+                "userId": {
+                  "type": "string",
+                  "description": "User id",
+                  "example": "..."
+                },
+                "email": {
+                  "type": "string",
+                  "description": "Email",
+                  "example": "..."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name",
+                  "example": "..."
+                }
+              }
+            }
+          },
+          "pageCount": {
+            "type": "integer",
+            "description": "Page count",
+            "example": 1
+          },
+          "itemCount": {
+            "type": "integer",
+            "description": "Item count",
+            "example": 1
+          },
+          "pages": {
+            "type": "array",
+            "description": "Pages",
+            "items": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "type": "integer",
+                  "description": "Number",
+                  "example": 1
+                },
+                "url": {
+                  "type": "string",
+                  "description": "Url",
+                  "example": "..."
+                }
+              }
+            }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Has more",
+            "example": false
+          }
+        }
+      },
+      "AllUsersRoleResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Data",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userRole": {
+                  "type": "string",
+                  "description": "User role",
+                  "example": "..."
+                },
+                "userId": {
+                  "type": "string",
+                  "description": "User id",
+                  "example": "..."
+                },
+                "userEmail": {
+                  "type": "string",
+                  "description": "Email",
+                  "example": "..."
+                },
+                "personalEmail": {
+                  "type": "string",
+                  "description": "Email",
+                  "example": "..."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name",
+                  "example": "..."
+                }
+              }
+            }
+          },
+          "pageCount": {
+            "type": "integer",
+            "description": "Page count",
+            "example": 1
+          },
+          "itemCount": {
+            "type": "integer",
+            "description": "Item count",
+            "example": 1
+          },
+          "pages": {
+            "type": "array",
+            "description": "Pages",
+            "items": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "type": "integer",
+                  "description": "Number",
+                  "example": 1
+                },
+                "url": {
+                  "type": "string",
+                  "description": "Url",
+                  "example": "..."
+                }
+              }
+            }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Has more",
+            "example": false
+          }
+        }
+      },
+      "NewUserResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
+          },
+          "_data": {
+            "type": "object",
+            "description": "if userRole is company, name key: data",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "description": "User id",
+                "example": "..."
+              },
+              "companyName": {
+                "type": "string",
+                "description": "Company name",
+                "example": "..."
+              },
+              "ruc": {
+                "type": "string",
+                "description": "RUC",
+                "example": "..."
+              },
+              "address": {
+                "type": "string",
+                "description": "Address",
+                "example": "..."
+              },
+              "legalRepresentative": {
+                "type": "string",
+                "description": "Legal representative",
+                "example": "..."
+              },
+              "email": {
+                "type": "string",
+                "description": "Email",
+                "example": "..."
+              },
+              "phone": {
+                "type": "string",
+                "description": "Phone",
+                "example": "..."
+              },
+              "country": {
+                "type": "string",
+                "description": "Country",
+                "example": "..."
+              },
+              "logo": {
+                "type": "string",
+                "description": "Logo URL",
+                "example": "..."
+              }
+            }
+          },
+          "__data": {
+            "type": "object",
+            "description": "if userRole is auditor or commercial, name key: data",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "description": "User id",
+                "example": "..."
+              },
+              "fullName": {
+                "type": "string",
+                "description": "Full name",
+                "example": "..."
+              },
+              "dni": {
+                "type": "string",
+                "description": "DNI",
+                "example": "..."
+              },
+              "address": {
+                "type": "string",
+                "description": "Address",
+                "example": "..."
+              },
+              "email": {
+                "type": "string",
+                "description": "Email",
+                "example": "..."
+              },
+              "phone": {
+                "type": "string",
+                "description": "Phone",
+                "example": "..."
+              },
+              "country": {
+                "type": "string",
+                "description": "Country",
+                "example": "..."
+              },
+              "photo": {
+                "type": "string",
+                "description": "Photo URL",
+                "example": "..."
+              }
+            }
+          }
+        }
+      },
+      "BadRequestError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "${error.message}"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code",
+            "example": "bad_request"
           }
         }
       },
