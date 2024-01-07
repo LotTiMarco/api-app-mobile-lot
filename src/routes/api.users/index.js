@@ -74,30 +74,6 @@ router.get(
         #swagger.responses[200] = {
             schema:{
                 $ref: "#/components/responses/AllUsersResponse"
-            },
-            example: {
-                status: "success",
-                data: [
-                    {
-                        userRole: "...",
-                        userId: "...",
-                        email: "...",
-                        name: "..."
-                    }
-                ],
-                pageCount: 1,
-                itemCount: 1,
-                pages: [
-                    {
-                        page: 1,
-                        url: "/api/users/all?page=1"
-                    },
-                    {
-                        page: 2,
-                        url: "/api/users/all?page=2"
-                    }
-                ],
-                has_more: false
             }
         }
         #swagger.responses[401] = {
@@ -129,10 +105,10 @@ router.get(
 
             // Consulta con paginación
             const { rows } = await repositoryDB.query(
-                `SELECT u."userRole", profiles."userId", profiles.email, profiles.name
-                FROM(SELECT "userId", email, "companyName" AS name FROM companies
+                `SELECT u."userRole", profiles."userId", profiles.name, profiles.identifier
+                FROM(SELECT "userId", "companyName" AS name, ruc AS identifier FROM companies
                     UNION
-                    SELECT "userId", email, "fullName" AS name FROM persons) AS profiles
+                    SELECT "userId", "fullName" AS name, dni AS identifier FROM persons) AS profiles
                 JOIN users u ON profiles."userId" = u."userId"
                 LIMIT $1 OFFSET $2;`,
                 [limit, offset]
@@ -159,84 +135,59 @@ router.get(
 );
 
 router.get(
-    /*
-    #swagger.tags = ['Usuarios']
-    #swagger.operationId = 'api.users/{userRole}'
-    #swagger.summary = 'Endpoint para obtener todos los usuarios de un rol'
-    #swagger.description = 'Endpoint para obtener todos los usuarios de un rol (customer, auditor, commercial).'
-    #swagger.security = [{
-        "bearerAuth": []
-    }]
-    #swagger.parameters['role'] = {
-        in: 'path',
-        description: 'Rol de usuario',
-        required: true,
-        type: 'string'
-    }
-    #swagger.parameters['page'] = {
-        in: 'query',
-        description: 'Número de página',
-        required: false,
-        type: 'integer'
-    }
-    #swagger.parameters['limit'] = {
-        in: 'query',
-        description: 'Número de elementos por página(10 por defecto, máximo 50)',
-        required: false,
-        type: 'integer'
-    }
-    #swagger.responses[200] = {
-        schema:{
-            $ref: "#/components/responses/AllUsersRoleResponse"
-        },
-        example: {
-            status: "success",
-            data: [
-                {
-                    userRole: "...",
-                    userId: "...",
-                    email: "...",
-                    name: "..."
-                }
-            ],
-            pageCount: 1,
-            itemCount: 1,
-            pages: [
-                {
-                    page: 1,
-                    url: "/api/users/all?page=1"
-                },
-                {
-                    page: 2,
-                    url: "/api/users/all?page=2"
-                }
-            ],
-            has_more: false
-        }
-    }
-    #swagger.responses[401] = {
-        schema:{
-            $ref: "#/components/responses/UnauthorizedError"
-        }
-    }
-    #swagger.responses[500] = {
-        schema:{
-            $ref: "#/components/responses/InternalServerError"
-        }
-    }
-     */
     '/:role',
     validateURLParams('role'),
     checkAuth,
     allowRoles(['auditor', 'commercial', 'admin']),
     async (req, res, next) => {
-        const validRoles = new Set(['customer', 'auditor', 'commercial', 'employee']);
+        /*
+         #swagger.tags = ['Usuarios']
+         #swagger.operationId = 'api.users/{userRole}'
+         #swagger.summary = 'Endpoint para obtener todos los usuarios de un rol'
+         #swagger.description = 'Endpoint para obtener todos los usuarios de un rol (customer, auditor, commercial).'
+         #swagger.security = [{
+         "bearerAuth": []
+         }]
+         #swagger.parameters['role'] = {
+             in: 'path',
+             description: 'Rol de usuario',
+             required: true,
+             type: 'string'
+         }
+         #swagger.parameters['page'] = {
+             in: 'query',
+             description: 'Número de página',
+             required: false,
+             type: 'integer'
+         }
+         #swagger.parameters['limit'] = {
+             in: 'query',
+             description: 'Número de elementos por página(10 por defecto, máximo 50)',
+             required: false,
+             type: 'integer'
+         }
+         #swagger.responses[200] = {
+             schema:{
+                $ref: "#/components/responses/AllUsersRoleResponse"
+             }
+         }
+         #swagger.responses[401] = {
+             schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+             }
+         }
+         #swagger.responses[500] = {
+             schema:{
+                $ref: "#/components/responses/InternalServerError"
+             }
+         }
+         */
+        const validRoles = new Set(['customer', 'auditor', 'commercial']);
         const userRole = req.params.role;
 
         if (!validRoles.has(userRole)) {
             return res.status(400).json({ status: 'error', message: 'El rol de usuario no es válido.', code: 'invalid_user_role' });
         }
-        console.log(userRole)
         try {
             await repositoryDB.connect();
 
@@ -245,79 +196,40 @@ router.get(
             const limit = req.query.limit || 10;
             const offset = (page - 1) * limit;
 
-            let queryCount = '';
-            let optionsCount = [];
-            let query = '';
-            let options = [];
+            const { rows: counts } = await repositoryDB.query(
+                `SELECT COUNT(*)
+                FROM(SELECT "userId", "companyName" AS name, ruc AS identifier FROM companies
+                    UNION
+                    SELECT "userId", "fullName" AS name, dni AS identifier FROM persons) AS profiles
+                JOIN users u ON profiles."userId" = u."userId"
+                WHERE u."userRole" = $1;`,
+                [userRole]
+            );
 
-            switch (userRole) {
-                case 'customer': {
-                    queryCount = `SELECT COUNT(*) FROM companies;`
-                    optionsCount = []
-
-                    query = `SELECT u."userRole", u."userId", u.email AS "userEmail", c.email AS "personalEmail", c."companyName" AS name
-                    FROM companies c
-                    JOIN users u ON c."userId" = u."userId"
-                    LIMIT $1 OFFSET $2;`
-                    options = [limit, offset]
-                    break;
-                }
-                case 'auditor': {
-                    queryCount = `SELECT COUNT(*) FROM persons p JOIN users u on p."userId" = u."userId" 
-                                  WHERE u."userRole" = 'auditor';`
-                    optionsCount = []
-                    query = `SELECT u."userRole", u."userId", u.email AS "userEmail", p.email AS "personalEmail", p."fullName" AS name
-                    FROM persons p
-                    JOIN users u ON p."userId" = u."userId"
-                    WHERE u."userRole" = 'auditor'
-                    LIMIT $1 OFFSET $2;`
-                    options = [limit, offset]
-                    break;
-                }
-                case 'commercial': {
-                    queryCount = `SELECT COUNT(*) FROM persons p JOIN users u on p."userId" = u."userId" 
-                                  WHERE u."userRole" = 'commercial';`
-                    optionsCount = []
-                    query = `SELECT u."userRole", u."userId", u.email AS "userEmail", p.email AS "personalEmail", p."fullName" AS name
-                    FROM persons p
-                    JOIN users u ON p."userId" = u."userId"
-                    WHERE u."userRole" = 'commercial'
-                    LIMIT $1 OFFSET $2;`
-                    options = [limit, offset]
-                    break;
-                }
-                case 'employee': {
-                    queryCount = `SELECT COUNT(*) FROM persons p JOIN users u on p."userId" = u."userId" 
-                                  WHERE u."userRole" != 'admin';`
-                    optionsCount = []
-                    query = `SELECT u."userRole", u."userId", u.email AS "userEmail", p.email AS "personalEmail", p."fullName" AS name
-                    FROM persons p
-                    JOIN users u ON p."userId" = u."userId"
-                    WHERE u."userRole" != 'admin'
-                    LIMIT $1 OFFSET $2;`
-                    options = [limit, offset]
-                    break;
-                }
-                default:
-                    break;
-            }
-
-            console.log(query, options)
-
-            // Obtener el número total de elementos sin la limitación de paginación
-            const itemCount = await repositoryDB.query(queryCount, optionsCount);
+            console.log(counts) //[ { count: '2' } ]
+            const itemCount = parseInt(counts[0].count, 10);
+            console.log(itemCount)
 
             // Consulta con paginación
-            const { rows } = await repositoryDB.query(query, options);
+            const { rows } = await repositoryDB.query(
+                `SELECT u."userRole", profiles."userId", profiles.email, profiles.name, profiles.identifier
+                FROM(SELECT "userId", email, "companyName" AS name, ruc AS identifier FROM companies
+                    UNION
+                    SELECT "userId", email, "fullName" AS name, dni AS identifier FROM persons) AS profiles
+                JOIN users u ON profiles."userId" = u."userId"
+                WHERE u."userRole" = $1
+                LIMIT $2 OFFSET $3;`,
+                [userRole, limit, offset]
+            );
 
-            const pageCount = Math.ceil(itemCount.rows[0].count / limit);
+            const pageCount = Math.ceil(itemCount / limit);
 
             // Devolver la respuesta con información de paginación
             return res.status(200).json({
                 status: 'success',
                 data: rows,
                 pageCount,
-                itemCount: itemCount.rows[0].count,
+                itemCount: itemCount,
                 pages: paginate.getArrayPages(req)(3, pageCount, page),
                 has_more: paginate.hasNextPages(req)(pageCount)
             });
@@ -395,6 +307,7 @@ router.post(
         try {
             await repositoryDB.connect();
 
+
             // Revisar credenciales nuevas
             const { credentials } = req.body;
             if (!credentials) {
@@ -444,7 +357,7 @@ router.post(
                 const logo = await repositoryStorageImg._saveImage(logoBase64);
                 const { rows: companyCreated } = await repositoryDB.query(
                     `INSERT INTO companies ("userId", "companyName", ruc, address, "legalRepresentative", email, phone, country, logo) 
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;`,
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "userId", "companyName" AS name, ruc AS identifier ;`,
                     [newUserId, companyName, ruc, address, legalRepresentative, email, phone, country, logo]
                 );
                 return res.status(201).json({ status: 'success', data: companyCreated[0] });
@@ -454,7 +367,7 @@ router.post(
                 const photo = await repositoryStorageImg._saveImage(photoBase64);
                 const { rows: personCreated } = await repositoryDB.query(
                     `INSERT INTO persons ("userId", "fullName", dni, address, email, phone, country, photo) 
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;`,
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "userId", "fullName" AS name, dni AS identifier;`,
                     [newUserId, fullName, dni, address, email, phone, country, photo]
                 );
                 return res.status(201).json({ status: 'success', data: personCreated[0] });
@@ -463,16 +376,127 @@ router.post(
             }
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+        } finally {
+            await repositoryDB.disconnect();
         }
     }
 )
 
 router.get(
-    '/user/:userId',
+    '/:role/search',
+    validateURLParams('role'),
+    checkAuth,
+    allowRoles(['auditor', 'commercial', 'admin']),
+    async (req, res, next) => {
+        /*
+        #swagger.tags = ['Usuarios']
+        #swagger.operationId = 'api.users/{userRole}/search'
+        #swagger.summary = 'Endpoint para buscar usuarios'
+        #swagger.description = 'Endpoint para buscar usuarios (customer, auditor, commercial).'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['role'] = {
+            in: 'path',
+            description: 'Rol de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.parameters['value'] = {
+            in: 'query',
+            description: 'Texto a buscar (mínimo 3 caracteres), puede ser el nombre o el número de identificación(RUC, DNI, etc.)',
+            required: false,
+            type: 'string'
+        }
+        #swagger.responses[200] = {
+            schema:{
+                $ref: "#/components/responses/SearchUserResponse"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
+        const validRoles = new Set(['customer', 'auditor', 'commercial', 'employee']);
+        const userRole = req.params.role;
+
+        if (!validRoles.has(userRole)) {
+            return res.status(400).json({ status: 'error', message: 'El rol de usuario no es válido.', code: 'invalid_user_role' });
+        }
+
+        try {
+            await repositoryDB.connect();
+
+            //obtener el texto a buscar
+            const { value } = req.query;
+            if (!value) {
+                return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
+            }
+            if (value.length < 3) {
+                return res.status(400).json({ status: 'error', message: 'El texto a buscar debe tener al menos 3 caracteres.', code: 'invalid_search_text' });
+            }
+
+            const { rows } = await repositoryDB.query(
+                `SELECT u."userRole", profiles."userId", profiles.name, profiles.identifier
+                FROM(SELECT "userId", "companyName" AS name, ruc AS identifier FROM companies
+                    UNION
+                    SELECT "userId", "fullName" AS name, dni AS identifier FROM persons) AS profiles
+                JOIN users u ON profiles."userId" = u."userId"
+                WHERE u."userRole" = $1 AND ( profiles.name ILIKE $2 OR profiles.identifier ILIKE $2 );`,
+                [userRole, `%${value}%`]
+            );
+            return res.status(200).json({ status: 'success', data: rows });
+
+        } catch (error) {
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+        } finally {
+            await repositoryDB.disconnect();
+        }
+    }
+)
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+router.get(
+    '/profile/:userId',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin']),
+    allowRoles(['customer', 'auditor', 'commercial', 'admin']),
     async (req, res, next) => {
+        /*
+         #swagger.tags = ['Usuarios']
+         #swagger.operationId = 'api.users/{userId}'
+         #swagger.summary = 'Endpoint para obtener perfil de un usuario'
+         #swagger.description = 'Endpoint para obtener datos de perfil de un usuario (customer, auditor, commercial)..'
+         #swagger.security = [{
+            "bearerAuth": []
+         }]
+         #swagger.parameters['userId'] = {
+             in: 'path',
+             description: 'Id de usuario',
+             required: true,
+             type: 'string'
+         }
+         #swagger.responses[200] = {
+         }
+         #swagger.responses[401] = {
+             schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+             }
+         }
+         #swagger.responses[500] = {
+             schema:{
+                $ref: "#/components/responses/InternalServerError"
+             }
+         }
+         */
         try {
             await repositoryDB.connect();
             const { rows: companies } = await repositoryDB.query(
@@ -500,24 +524,170 @@ router.get(
     }
 );
 
-router.get(
-    '/:userId/profile/photo',
+router.post(
+    '/profile/:userId',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'auditor']),
+    allowRoles(['customer', 'auditor', 'commercial', 'admin']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Usuarios']
+        #swagger.operationId = 'api.users/{userId}'
+        #swagger.summary = 'Endpoint para actualizar perfil de un usuario'
+        #swagger.description = 'Endpoint para actualizar datos de perfil de un usuario (customer, auditor, commercial)..'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.requestBody = {
+            required: true,
+            content: {
+                "application/json": {
+                    schema: {
+                        oneOf: [
+                            { $ref: "#/components/schemas/UpdateCompany" },
+                            { $ref: "#/components/schemas/UpdatePerson" }
+                        ]
+                    },
+                    examples: {
+                        updateCompany: { $ref: "#/components/examples/updateCompany" },
+                        updatePerson: { $ref: "#/components/examples/updatePerson" }
+                    }
+                }
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
         try {
             await repositoryDB.connect();
-            const { rows } = await repositoryDB.query(
-                `SELECT logo FROM persons WHERE "userId" = $1;`,
+
+            // Revisar datos de perfil nuevos
+            const {update} = req.body;
+            if (!update) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Faltan campos obligatorios.',
+                    code: 'missing_required_fields'
+                });
+            }
+
+            const {rows: companies} = await repositoryDB.query(
+                `SELECT * FROM companies WHERE "userId" = $1;`,
                 [req.params.userId]
             );
-
-            if (rows.length > 0) {
-                return res.status(200).json({ status: 'success', data: rows[0] });
-            } else {
-                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+            if (companies.length > 0) {
+                const {address} = update;
+                const {rows} = await repositoryDB.query(
+                    `UPDATE companies SET address = $1`,
+                    [address]
+                );
+                return res.status(204).json({status: 'success'});
             }
+
+            const {rows: persons} = await repositoryDB.query(
+                `SELECT * FROM persons WHERE "userId" = $1;`,
+                [req.params.userId]
+            );
+            if (persons.length > 0) {
+                const {address, phone} = update;
+                const {rows} = await repositoryDB.query(
+                    `UPDATE persons SET address = $1, phone = $2`,
+                    [address, phone]
+                );
+                return res.status(204).json({status: 'success'});
+            }
+            return res.status(404).json({status: 'error', message: 'User not found.', code: 'user_not_found'});
+        } catch (error) {
+            return res.status(500).json({status: 'error', message: error.message, code: 'internal_server_error'});
+        } finally {
+            await repositoryDB.disconnect();
+        }
+    }
+)
+
+
+router.get(
+    '/profile/:userId/image',
+    validateURLParams('userId'),
+    checkAuth,
+    allowRoles(['customer', 'auditor', 'commercial', 'admin']),
+    async (req, res, next) => {
+        /*
+        #swagger.tags = ['Usuarios']
+        #swagger.operationId = 'api.users/{userId}/image'
+        #swagger.summary = 'Endpoint para obtener la foto de perfil de un usuario'
+        #swagger.description = 'Endpoint para obtener la foto(url) de perfil de un usuario (customer, auditor, commercial)..'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.responses[200] = {
+            schema:{
+                $ref: "#/components/responses/UserImageResponse"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
+        try {
+            await repositoryDB.connect();
+            const { rows: companies } = await repositoryDB.query(
+                `SELECT logo FROM companies WHERE "userId" = $1;`,
+                [req.params.userId]
+            );
+            if (companies.length > 0) {
+                return res.status(200).json({ status: 'success', data: companies[0] });
+            }
+            const { rows: persons } = await repositoryDB.query(
+                `SELECT photo FROM persons WHERE "userId" = $1;`,
+                [req.params.userId]
+            );
+            if (persons.length > 0) {
+                return res.status(200).json({ status: 'success', data: persons[0] });
+            }
+            return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
@@ -527,11 +697,63 @@ router.get(
 )
 
 router.post(
-    '/:userId/profile/photo',
+    '/profile/:userId/image',
     validateURLParams('userId'),
     checkAuth,
     allowRoles(['admin', 'auditor']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Usuarios']
+        #swagger.operationId = 'api.users/{userId}/image'
+        #swagger.summary = 'Endpoint para subir la foto de perfil de un usuario'
+        #swagger.description = 'Endpoint para subir la foto(base64) de perfil de un usuario (customer, auditor, commercial)..'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.requestBody = {
+            required: true,
+            content: {
+                "application/json": {
+                    schema: {
+                        oneOf: [
+                            { $ref: "#/components/schemas/UpdateCompanyImage" },
+                            { $ref: "#/components/schemas/UpdatePersonImage" }
+                        ]
+                    },
+                    examples: {
+                        updateCompanyImage: { $ref: "#/components/examples/updateCompanyImage" },
+                        updatePersonImage: { $ref: "#/components/examples/updatePersonImage" }
+                    }
+                }
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
         try {
             await repositoryDB.connect();
 
@@ -540,22 +762,41 @@ router.post(
                 return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
             }
 
-            const { logo } = update;
-            if (!logo) {
-                return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
-            }
-
-            const filePath = await repositoryStorageImg._saveImage(logo);
-            const { rows } = await repositoryDB.query(
-                `UPDATE persons SET logo = $1 WHERE "userId" = $2 RETURNING logo;`,
-                [filePath, req.params.userId]
+            const { rows: companies } = await repositoryDB.query(
+                `SELECT * FROM companies WHERE "userId" = $1;`,
+                [req.params.userId]
             );
+            if (companies.length > 0) {
+                const { logo } = update;
+                if (!logo) {
+                    return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
+                }
+                const filePath = await repositoryStorageImg._saveImage(logo);
 
-            if (rows.length > 0) {
-                return res.status(200).json({ status: 'success', data: rows[0] });
-            } else {
-                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+                const { rows } = await repositoryDB.query(
+                    `UPDATE companies SET logo = $1 WHERE "userId" = $2`,
+                    [filePath, req.params.userId]
+                );
+                return res.status(204).json({ status: 'success' });
             }
+
+            const { rows: persons } = await repositoryDB.query(
+                `SELECT * FROM persons WHERE "userId" = $1;`,
+                [req.params.userId]
+            );
+            if (persons.length > 0) {
+                const { photo } = update;
+                if (!photo) {
+                    return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
+                }
+                const filePath = await repositoryStorageImg._saveImage(photo);
+                const { rows } = await repositoryDB.query(
+                    `UPDATE persons SET photo = $1 WHERE "userId" = $2`,
+                    [filePath, req.params.userId]
+                );
+                return res.status(204).json({ status: 'success' });
+            }
+            return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
