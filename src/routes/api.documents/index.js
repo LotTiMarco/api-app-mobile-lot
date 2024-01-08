@@ -3,13 +3,16 @@ import RepositoryPostgre from "../../repository/Repository.postgre.js";
 import {checkAuth} from "../../middlewares/checkAuth.js";
 import {validateURLParams} from "../../middlewares/validateURLParams.js";
 import {allowRoles} from "../../middlewares/allowRoles.js";
-import RepositoryServerStorageImg from "../../repository/Repository.serverStorage.img.js";
+import upload from "../../middlewares/multer.js";
 
 const router = Router();
 const repositoryDB = new RepositoryPostgre();
-const repositoryStorageImg = new RepositoryServerStorageImg()
 
 router.get('/', async (req, res, next) => {
+    /*
+    #swagger.tags = ['Documents']
+    #swagger.ignore = true
+     */
     try {
         return res.status(200).json({ status: 'success', message: "API PARA DOCUMENTOS" });
     } catch (error) {
@@ -18,27 +21,62 @@ router.get('/', async (req, res, next) => {
 });
 
 router.get(
-    '/:userId/years',
+    '/years/:userId',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['customer', 'auditor', 'commercial', 'admin']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Documents']
+        #swagger.operationId = 'api.documents/years/:userId'
+        #swagger.summary = 'Endpoint para obtener los años con documentacion de un usuario.'
+        #swagger.description = 'Endpoint para obtener los años con documentacion de un usuario.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.responses[200] = {
+            schema:{
+                $ref: "#/components/responses/AllYearsResponse"
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `SELECT year FROM "customersYears" WHERE "userId" = $1;`,
+                `SELECT "userId", year FROM "customersYears" WHERE "userId" = $1;`,
                 [req.params.userId]
             );
-            console.log(rows); // [ { year: '2020' }, { year: '2022' } ]
 
             if (rows.length > 0) {
-                const years = []
-                rows.forEach(row => {
-                    years.push(row.year)
-                });
-                return res.status(200).json({ status: 'success', data: { years: years} });
+                return res.status(200).json({ status: 'success', data: rows });
             } else {
-                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+                return res.status(404).json({ status: 'error', message: 'Datos no encontrados.', code: 'not_found' });
             }
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
@@ -48,33 +86,182 @@ router.get(
     }
 );
 
-router.get(
-    '/:userId/:year/files',
-    validateURLParams('userId', 'year'),
+router.post(
+    '/years/:userId/new',
+    validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['commercial', 'admin']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Documents']
+        #swagger.operationId = 'api.documents/years/:userId/new'
+        #swagger.summary = 'Endpoint para crear un nuevo año de documentacion para un usuario.'
+        #swagger.description = 'Endpoint para crear un nuevo año de documentacion para un usuario.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.requestBody = {
+            required: true,
+            content: {
+                "application/json": {
+                    schema: {
+                        $ref: "#/components/schemas/NewYear"
+                    },
+                    examples: {
+                        newYear: { $ref: "#/components/examples/newYear" }
+                    }
+                }
+            }
+        }
+        #swagger.parameters['year'] = {
+            in: 'body',
+            description: 'Año',
+            required: true,
+            type: 'string'
+        }
+        #swagger.responses[201] = {
+            schema:{
+                $ref: "#/components/responses/CreatedResponse"
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[409] = {
+            schema:{
+                $ref: "#/components/responses/ConflictError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
         try {
             await repositoryDB.connect();
-            const { rows } = await repositoryDB.query(
-                `SELECT "fileIndex" FROM files f 
+            const { rows: users } = await repositoryDB.query(
+                `SELECT "userId" FROM users WHERE "userId" = $1 AND "userRole" = 'customer';`, // Solo se puede crear un año de documentacion para un usuario de tipo customer
+                [req.params.userId]
+            );
+
+            if (users.length <= 0) {
+                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+            }
+
+            const { rows: customerYear } = await repositoryDB.query(
+                `SELECT "userId", year FROM "customersYears" WHERE "userId" = $1 AND year = $2;`,
+                [req.params.userId, req.body.year]
+            );
+            if (customerYear.length > 0) {
+                return res.status(409).json({ status: 'error', message: 'El año ya existe.', code: 'year_already_exists' });
+            }
+
+            await repositoryDB.query('BEGIN;'); // Inicia la transaccion
+
+            const { rows: customerYearCreated } = await repositoryDB.query(
+                `INSERT INTO "customersYears" ("userId", year) VALUES ($1, $2) RETURNING "customerYearId";`,
+                [req.params.userId, req.body.year]
+            );
+            const { rows: fileCreated } = await repositoryDB.query(
+                `INSERT INTO files ("customerYearId", "fileIndex") VALUES ($1, $2) RETURNING *;`,
+                [customerYearCreated[0].customerYearId, 1]
+            );
+
+            await repositoryDB.query('COMMIT;'); // Finaliza la transaccion
+
+            return res.status(201).json({ status: 'success', data: customerYearCreated[0] });
+
+        } catch (error) {
+            await repositoryDB.query('ROLLBACK;'); // Cancela la transaccion
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+        } finally {
+            await repositoryDB.disconnect();
+        }
+    }
+)
+
+router.get(
+    '/files/:userId/:year',
+    validateURLParams('userId', 'year'),
+    checkAuth,
+    allowRoles(['customer', 'auditor', 'commercial', 'admin']),
+    async (req, res, next) => {
+        /*
+        #swagger.tags = ['Documents']
+        #swagger.operationId = 'api.documents/files/:userId/:year'
+        #swagger.summary = 'Endpoint para obtener los expedientes de un año de documentacion de un usuario.'
+        #swagger.description = 'Endpoint para obtener los expedientes de un año de documentacion de un usuario.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.parameters['year'] = {
+            in: 'path',
+            description: 'Año',
+            required: true,
+            type: 'string'
+        }
+        #swagger.responses[200] = {
+            schema:{
+                $ref: "#/components/responses/AllFilesResponse"
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
+        try {
+            await repositoryDB.connect();
+            const { rows: files } = await repositoryDB.query(
+                `SELECT "fileId", "fileIndex" FROM files f 
                         where f."customerYearId" = (
                             select "customerYearId" from "customersYears" cy 
-                            where cy."userId" = $1 and cy."year" = $2
+                            where cy."userId" = $1 AND cy."year" = $2
                         );`,
                 [req.params.userId, req.params.year]
             );
-            console.log(rows);
 
-            if (rows.length > 0) {
-                const files = []
-                rows.forEach(row => {
-                    files.push(row.fileIndex)
-                });
-                return res.status(200).json({ status: 'success', data: { files: files} });
-            } else {
-                return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+            if (files.length > 0) {
+                return res.status(200).json({ status: 'success', data: files });
             }
+            return res.status(404).json({ status: 'error', message: 'Data not found.', code: 'not_found' });
+
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
@@ -83,86 +270,214 @@ router.get(
     }
 );
 
-router.get(
-    '/:userId/:year/:fileIndex/certification',
-    validateURLParams('userId', 'year', 'fileIndex'),
+router.post(
+    '/files/:userId/:year/new',
+    validateURLParams('userId', 'year'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['commercial', 'admin']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Documents']
+        #swagger.operationId = 'api.documents/files/:userId/:year/new'
+        #swagger.summary = 'Endpoint para crear un nuevo expediente de un año de documentacion de un usuario.'
+        #swagger.description = 'Endpoint para crear un nuevo expediente de un año de documentacion de un usuario.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.parameters['year'] = {
+            in: 'path',
+            description: 'Año',
+            required: true,
+            type: 'string'
+        }
+        #swagger.requestBody = {
+            required: true,
+            content: {
+                "application/json": {
+                    schema: {
+                        $ref: "#/components/schemas/NewFile"
+                    },
+                    examples: {
+                        newFile: { $ref: "#/components/examples/newFile" }
+                    }
+                }
+            }
+        }
+        #swagger.responses[201] = {
+            schema:{
+                $ref: "#/components/responses/CreatedResponse"
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[409] = {
+            schema:{
+                $ref: "#/components/responses/ConflictError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
+        try {
+            await repositoryDB.connect();
+            const {rows: users} = await repositoryDB.query(
+                `SELECT "userId" FROM users WHERE "userId" = $1 AND "userRole" = 'customer';`, // Solo se puede crear un año de documentacion para un usuario de tipo customer
+                [req.params.userId]
+            );
+
+            if (users.length <= 0) {
+                return res.status(404).json({status: 'error', message: 'User not found.', code: 'user_not_found'});
+            }
+
+            // Verifica que el año exista
+            const {rows: customerYear} = await repositoryDB.query(
+                `SELECT "customerYearId", "userId", year FROM "customersYears" WHERE "userId" = $1 AND year = $2;`,
+                [req.params.userId, req.params.year]
+            );
+            if (customerYear.length <= 0) {
+                return res.status(404).json({status: 'error', message: 'Year not found.', code: 'year_not_found'});
+            }
+
+            // Verifica que el expediente no exista
+            const {rows: file} = await repositoryDB.query(
+                `SELECT "fileId" FROM files WHERE "customerYearId" = $1 AND "fileIndex" = $2;`,
+                [customerYear[0].customerYearId, req.body.fileIndex]
+            );
+            if (file.length > 0) {
+                return res.status(409).json({
+                    status: 'error',
+                    message: 'El expediente ya existe.',
+                    code: 'file_already_exists'
+                });
+            }
+
+            const {rows: fileCreated} = await repositoryDB.query(
+                `INSERT INTO files ("customerYearId", "fileIndex") VALUES ($1, $2) RETURNING *;`,
+                [customerYear[0].customerYearId, req.body.fileIndex]
+            );
+
+            return res.status(201).json({status: 'success', data: fileCreated[0]});
+        } catch (error) {
+            return res.status(500).json({status: 'error', message: error.message, code: 'internal_server_error'});
+        } finally {
+            await repositoryDB.disconnect();
+        }
+    }
+)
+
+router.get(
+    '/docs/:fileId/:typeProcess/:typeDoc',
+    validateURLParams('fileId', 'typeProcess', 'typeDoc'),
+    checkAuth,
+    allowRoles(['customer', 'auditor', 'commercial', 'admin']),
+    async (req, res, next) => {
+        /*
+        #swagger.tags = ['Documents']
+        #swagger.operationId = 'api.documents/docs/:fileId/:typeProcess/:typeDoc'
+        #swagger.summary = 'Endpoint para obtener los documentos de un tipo.'
+        #swagger.description = 'Endpoint para obtener los documentos de un tipo, de un expediente, de un año de documentacion de un usuario.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['fileId'] = {
+            in: 'path',
+            description: 'Id de expediente',
+            required: true,
+            type: 'string'
+        }
+        #swagger.parameters['typeProcess'] = {
+            in: 'path',
+            description: 'Tipo de proceso',
+            required: true,
+            type: 'string',
+             schema: {
+                '@enum': ['certification', 'recertification']
+             }
+        }
+        #swagger.parameters['typeDoc'] = {
+            in: 'path',
+            description: 'Tipo de documento',
+            required: true,
+            type: 'string',
+            schema: {
+                '@enum': ['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']
+            }
+        }
+        #swagger.responses[200] = {
+            schema:{
+                $ref: "#/components/responses/AllDocsResponse"
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
+        const validTypeProcess = new Set(['certification', 'recertification']);
+        const validTypeDoc = new Set(['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']);
+        if (!validTypeProcess.has(req.params.typeProcess)) {
+            return res.status(400).json({ status: 'error', message: 'El tipo de proceso no es válido.', code: 'invalid_type_process' });
+        }
+        if (!validTypeDoc.has(req.params.typeDoc)) {
+            return res.status(400).json({ status: 'error', message: 'El tipo de documento no es válido.', code: 'invalid_type_doc' });
+        }
+
         try {
             await repositoryDB.connect();
 
-            const { rows: quotes } = await repositoryDB.query(
-                `SELECT name, url FROM quotes q 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'certificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
+            const { rows: files } = await repositoryDB.query(
+                `SELECT "fileId" FROM files WHERE "fileId" = $1;`,
+                [req.params.fileId]
+            );
+            if (files.length <= 0) {
+                return res.status(404).json({ status: 'error', message: 'File not found.', code: 'file_not_found' });
+            }
+
+            const query = `SELECT * FROM "${req.params.typeDoc}" t where t."fileId" = $1 and t."typeProcess" = $2;`;
+            const { rows: docs } = await repositoryDB.query(
+                query,
+                [req.params.fileId, req.params.typeProcess]
             );
 
-            const { rows: contractsBillings } = await repositoryDB.query(
-                `SELECT name, url FROM "contractsBillings" ctb 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'certificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: auditPlans } = await repositoryDB.query(
-                `SELECT name, url FROM "auditPlans" ap 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'certificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: auditReports } = await repositoryDB.query(
-                `SELECT name, url FROM "auditReports" ar 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'certificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: certificates } = await repositoryDB.query(
-                `SELECT name, url FROM certificates cf 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'certificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            return res.status(200).json({
-                status: 'success',
-                data: {
-                    quotes: quotes,
-                    contractsBillings: contractsBillings,
-                    auditPlans: auditPlans,
-                    auditReports: auditReports,
-                    certificates: certificates
-                }
-            });
-
+            return res.status(200).json({ status: 'success', data: docs });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
@@ -171,47 +486,127 @@ router.get(
     }
 );
 
-router.get(
-    '/:userId/:year/:fileIndex/certification/monitoring',
-    validateURLParams('userId', 'year', 'fileIndex'),
+router.post(
+    '/docs/:fileId/:typeProcess/:typeDoc/new',
+    validateURLParams('fileId', 'typeProcess', 'typeDoc'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['commercial', 'admin']),
+    upload.single('file'),
     async (req, res, next) => {
+        /*
+         #swagger.tags = ['Documents']
+         #swagger.operationId = 'api.documents/docs/:fileId/:typeProcess/:typeDoc/new'
+         #swagger.summary = 'Endpoint para crear un nuevo documento.'
+         #swagger.description = 'Endpoint para crear un nuevo documento, de un tipo, de un expediente, de un año de documentacion de un usuario.'
+         #swagger.security = [{
+            "bearerAuth": []
+         }]
+         #swagger.parameters['fileId'] = {
+             in: 'path',
+             description: 'Id de expediente',
+             required: true,
+             type: 'string'
+         }
+         #swagger.parameters['typeProcess'] = {
+             in: 'path',
+             description: 'Tipo de proceso',
+             required: true,
+             type: 'string',
+             schema: {
+                 '@enum': ['certification', 'recertification']
+             }
+         }
+         #swagger.parameters['typeDoc'] = {
+             in: 'path',
+             description: 'Tipo de documento',
+             required: true,
+             type: 'string',
+             schema: {
+                 '@enum': ['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']
+             }
+         }
+         #swagger.requestBody = {
+             required: true,
+             content: {
+                 "multipart/form-data": {
+                     schema: {
+                        type: "object",
+                        properties: {
+                            name: {
+                                required: true,
+                                type: "string"
+                            },
+                            file: {
+                                required: true,
+                                type: "string",
+                                format: "binary"
+                            }
+                        }
+                     }
+                 }
+             }
+         }
+         #swagger.responses[201] = {
+             schema:{
+             $ref: "#/components/responses/CreatedResponse"
+             }
+         }
+         #swagger.responses[400] = {
+             schema:{
+                $ref: "#/components/responses/BadRequestError"
+             }
+         }
+         #swagger.responses[401] = {
+             schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+             }
+         }
+         #swagger.responses[404] = {
+             schema:{
+                $ref: "#/components/responses/NotFoundError"
+             }
+         }
+         #swagger.responses[409] = {
+            schema:{
+                $ref: "#/components/responses/ConflictError"
+            }
+         }
+         #swagger.responses[500] = {
+             schema:{
+                $ref: "#/components/responses/InternalServerError"
+             }
+         }
+         */
+        const validTypeProcess = new Set(['certification', 'recertification']);
+        const validTypeDoc = new Set(['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']);
+        if (!validTypeProcess.has(req.params.typeProcess)) {
+            return res.status(400).json({ status: 'error', message: 'El tipo de proceso no es válido.', code: 'invalid_type_process' });
+        }
+        if (!validTypeDoc.has(req.params.typeDoc)) {
+            return res.status(400).json({ status: 'error', message: 'El tipo de documento no es válido.', code: 'invalid_type_doc' });
+        }
+
         try {
             await repositoryDB.connect();
 
-            const { rows: monitoringPlans } = await repositoryDB.query(
-                `SELECT name, url FROM "monitoringPlans" mp 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'certificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
+            const name = req.body.name;
+            const file = req.file;
+            const pathFile = file.destination + '/' + file.filename;
+
+            const { rows: files } = await repositoryDB.query(
+                `SELECT "fileId" FROM files WHERE "fileId" = $1;`,
+                [req.params.fileId]
+            );
+            if (files.length <= 0) {
+                return res.status(404).json({ status: 'error', message: 'File not found.', code: 'file_not_found' });
+            }
+
+            const { rows: docs } = await repositoryDB.query(
+                `INSERT INTO "${req.params.typeDoc}" ("typeProcess", "fileId", name, url) VALUES ($1, $2, $3, $4) RETURNING * ;`,
+                [req.params.typeProcess, req.params.fileId, name, pathFile]
             );
 
-            const { rows: monitoringReports } = await repositoryDB.query(
-                `SELECT name, url FROM "monitoringReports" mr
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'certificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            return res.status(200).json({
-                status: 'success',
-                data: {
-                    monitoringPlans: monitoringPlans,
-                    monitoringReports: monitoringReports
-                }
-            });
-
+            return res.status(201).json({ status: 'success', data: docs[0] });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
@@ -220,86 +615,101 @@ router.get(
     }
 );
 
-router.get(
-    '/:userId/:year/:fileIndex/recertification',
-    validateURLParams('userId', 'year', 'fileIndex'),
+router.delete(
+    '/docs/:typeDoc/:docId',
+    validateURLParams('typeDoc', 'docId'),
     checkAuth,
-    allowRoles(['admin', 'customer']),
+    allowRoles(['commercial', 'admin']),
     async (req, res, next) => {
+        /*
+         #swagger.tags = ['Documents']
+         #swagger.operationId = 'api.documents/docs/:typeDoc/:docId'
+         #swagger.summary = 'Endpoint para eliminar un documento.'
+         #swagger.description = 'Endpoint para eliminar un documento.'
+         #swagger.security = [{
+            "bearerAuth": []
+         }]
+         #swagger.parameters['typeDoc'] = {
+             in: 'path',
+             description: 'Tipo de documento',
+             required: true,
+             type: 'string',
+             schema: {
+                 '@enum': ['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']
+             }
+         }
+         #swagger.parameters['docId'] = {
+             in: 'path',
+             description: 'Id de documento',
+             required: true,
+             type: 'string'
+         }
+         #swagger.responses[204] = {
+         }
+         #swagger.responses[400] = {
+             schema:{
+                $ref: "#/components/responses/BadRequestError"
+             }
+         }
+         #swagger.responses[401] = {
+             schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+             }
+         }
+         #swagger.responses[404] = {
+             schema:{
+                $ref: "#/components/responses/NotFoundError"
+             }
+         }
+         #swagger.responses[409] = {
+            schema:{
+                $ref: "#/components/responses/ConflictError"
+            }
+         }
+         #swagger.responses[500] = {
+             schema:{
+                $ref: "#/components/responses/InternalServerError"
+             }
+         }
+         */
+        const validTypeDoc = new Set(['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']);
+        if (!validTypeDoc.has(req.params.typeDoc)) {
+            return res.status(400).json({ status: 'error', message: 'El tipo de documento no es válido.', code: 'invalid_type_doc' });
+        }
+
         try {
             await repositoryDB.connect();
 
-            const { rows: quotes } = await repositoryDB.query(
-                `SELECT name, url FROM quotes q 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'recertificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: contractsBillings } = await repositoryDB.query(
-                `SELECT name, url FROM "contractsBillings" ctb 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'recertificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: auditPlans } = await repositoryDB.query(
-                `SELECT name, url FROM "recertificationPlans" ap 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'recertificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: auditReports } = await repositoryDB.query(
-                `SELECT name, url FROM "recertificationReports" ar 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'recertificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: certificates } = await repositoryDB.query(
-                `SELECT name, url FROM certificates cf 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'recertificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            return res.status(200).json({
-                status: 'success',
-                data: {
-                    quotes: quotes,
-                    contractsBillings: contractsBillings,
-                    auditPlans: auditPlans,
-                    auditReports: auditReports,
-                    certificates: certificates
-                }
-            });
-
+            switch (req.params.typeDoc) {
+                case 'quotes':
+                    await repositoryDB.query('DELETE FROM quotes WHERE "quoteId" = $1;', [req.params.docId]);
+                    break;
+                case 'contractsBillings':
+                    await repositoryDB.query('DELETE FROM "contractsBillings" WHERE "contractBillingId" = $1;', [req.params.docId]);
+                    break;
+                case 'auditPlans':
+                    await repositoryDB.query('DELETE FROM "auditPlans" WHERE "auditPlanId" = $1;', [req.params.docId]);
+                    break;
+                case 'auditReports':
+                    await repositoryDB.query('DELETE FROM "auditReports" WHERE "auditReportId" = $1;', [req.params.docId]);
+                    break;
+                case 'recertificationPlans':
+                    await repositoryDB.query('DELETE FROM "recertificationPlans" WHERE "recertificationPlanId" = $1;', [req.params.docId]);
+                    break;
+                case 'recertificationReports':
+                    await repositoryDB.query('DELETE FROM "recertificationReports" WHERE "recertificationReportId" = $1;', [req.params.docId]);
+                    break;
+                case 'certificates':
+                    await repositoryDB.query('DELETE FROM certificates WHERE "certificateId" = $1;', [req.params.docId]);
+                    break;
+                case 'monitoringPlans':
+                    await repositoryDB.query('DELETE FROM "monitoringPlans" WHERE "monitoringPlanId" = $1;', [req.params.docId]);
+                    break;
+                case 'monitoringReports':
+                    await repositoryDB.query('DELETE FROM "monitoringReports" WHERE "monitoringReportId" = $1;', [req.params.docId]);
+                    break;
+            }
+            return res.status(204).json({ status: 'success' });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
@@ -307,54 +717,3 @@ router.get(
         }
     }
 );
-
-router.get(
-    '/:userId/:year/:fileIndex/recertification/monitoring',
-    validateURLParams('userId', 'year', 'fileIndex'),
-    checkAuth,
-    allowRoles(['admin', 'customer']),
-    async (req, res, next) => {
-        try {
-            await repositoryDB.connect();
-
-            const { rows: monitoringPlans } = await repositoryDB.query(
-                `SELECT name, url FROM "monitoringPlans" mp 
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'recertificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            const { rows: monitoringReports } = await repositoryDB.query(
-                `SELECT name, url FROM "monitoringReports" mr
-                        WHERE "fileId" = (
-                            SELECT "fileId" FROM files f 
-                            WHERE f."customerYearId" = (
-                                SELECT "customerYearId" FROM "customersYears" cy 
-                                WHERE cy."userId" = $1 AND cy."year" = $2
-                            ) AND "fileIndex" = $3
-                        ) AND "typeProcess" = 'recertificacion';`,
-                [req.params.userId, req.params.year, req.params.fileIndex]
-            );
-
-            return res.status(200).json({
-                status: 'success',
-                data: {
-                    monitoringPlans: monitoringPlans,
-                    monitoringReports: monitoringReports
-                }
-            });
-
-        } catch (error) {
-            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
-        } finally {
-            await repositoryDB.disconnect();
-        }
-    }
-);
-
-export default router;

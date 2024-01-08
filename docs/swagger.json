@@ -1576,19 +1576,14 @@
         }
       }
     },
-    "/api.documents/": {
+    "/api.documents/years/{userId}": {
       "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api.documents/{userId}/years": {
-      "get": {
-        "description": "",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Endpoint para obtener los años con documentacion de un usuario.",
+        "description": "Endpoint para obtener los años con documentacion de un usuario.",
+        "operationId": "api.documents/years/:userId",
         "parameters": [
           {
             "name": "userId",
@@ -1596,7 +1591,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Id de usuario"
           },
           {
             "name": "authorization",
@@ -1608,29 +1604,99 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/AllYearsResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/AllYearsResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/api.documents/{userId}/{year}/files": {
-      "get": {
-        "description": "",
+    "/api.documents/years/{userId}/new": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Endpoint para crear un nuevo año de documentacion para un usuario.",
+        "description": "Endpoint para crear un nuevo año de documentacion para un usuario.",
+        "operationId": "api.documents/years/:userId/new",
         "parameters": [
           {
             "name": "userId",
@@ -1638,7 +1704,153 @@
             "required": true,
             "schema": {
               "type": "string"
+            },
+            "description": "Id de usuario"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
             }
+          },
+          {
+            "name": "year",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "year": {
+                  "example": "any"
+                }
+              }
+            },
+            "description": "Año",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/CreatedResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/CreatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewYear"
+              },
+              "examples": {
+                "newYear": {
+                  "$ref": "#/components/examples/newYear"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.documents/files/{userId}/{year}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Endpoint para obtener los expedientes de un año de documentacion de un usuario.",
+        "description": "Endpoint para obtener los expedientes de un año de documentacion de un usuario.",
+        "operationId": "api.documents/files/:userId/:year",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id de usuario"
           },
           {
             "name": "year",
@@ -1646,7 +1858,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Año"
           },
           {
             "name": "authorization",
@@ -1658,19 +1871,577 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/AllFilesResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/AllFilesResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api.documents/files/{userId}/{year}/new": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Endpoint para crear un nuevo expediente de un año de documentacion de un usuario.",
+        "description": "Endpoint para crear un nuevo expediente de un año de documentacion de un usuario.",
+        "operationId": "api.documents/files/:userId/:year/new",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id de usuario"
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Año"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/CreatedResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/CreatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewFile"
+              },
+              "examples": {
+                "newFile": {
+                  "$ref": "#/components/examples/newFile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.documents/docs/{fileId}/{typeProcess}/{typeDoc}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Endpoint para obtener los documentos de un tipo.",
+        "description": "Endpoint para obtener los documentos de un tipo, de un expediente, de un año de documentacion de un usuario.",
+        "operationId": "api.documents/docs/:fileId/:typeProcess/:typeDoc",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id de expediente"
+          },
+          {
+            "name": "typeProcess",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "certification",
+                "recertification"
+              ]
+            },
+            "description": "Tipo de proceso"
+          },
+          {
+            "name": "typeDoc",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "quotes",
+                "contractsBillings",
+                "auditPlans",
+                "auditReports",
+                "recertificationPlans",
+                "recertificationReports",
+                "certificates",
+                "monitoringPlans",
+                "monitoringReports"
+              ]
+            },
+            "description": "Tipo de documento"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/AllDocsResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/AllDocsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api.documents/docs/{fileId}/{typeProcess}/{typeDoc}/new": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Endpoint para crear un nuevo documento.",
+        "description": "Endpoint para crear un nuevo documento, de un tipo, de un expediente, de un año de documentacion de un usuario.",
+        "operationId": "api.documents/docs/:fileId/:typeProcess/:typeDoc/new",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id de expediente"
+          },
+          {
+            "name": "typeProcess",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "certification",
+                "recertification"
+              ]
+            },
+            "description": "Tipo de proceso"
+          },
+          {
+            "name": "typeDoc",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "quotes",
+                "contractsBillings",
+                "auditPlans",
+                "auditReports",
+                "recertificationPlans",
+                "recertificationReports",
+                "certificates",
+                "monitoringPlans",
+                "monitoringReports"
+              ]
+            },
+            "description": "Tipo de documento"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/CreatedResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/CreatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "required": true,
+                    "type": "string"
+                  },
+                  "file": {
+                    "required": true,
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.documents/upload-pdf": {
+      "post": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "500": {
             "description": "Internal Server Error"
@@ -2251,6 +3022,30 @@
         "xml": {
           "name": "UpdatePersonImage"
         }
+      },
+      "NewYear": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "string",
+            "example": "..."
+          }
+        },
+        "xml": {
+          "name": "NewYear"
+        }
+      },
+      "NewFile": {
+        "type": "object",
+        "properties": {
+          "fileIndex": {
+            "type": "string",
+            "example": "..."
+          }
+        },
+        "xml": {
+          "name": "NewFile"
+        }
       }
     },
     "securitySchemes": {
@@ -2333,6 +3128,18 @@
           }
         },
         "summary": "Update person image"
+      },
+      "newYear": {
+        "value": {
+          "year": "2024"
+        },
+        "summary": "New year"
+      },
+      "newFile": {
+        "value": {
+          "fileIndex": "..."
+        },
+        "summary": "New file"
       }
     },
     "responses": {
@@ -2583,6 +3390,80 @@
           }
         }
       },
+      "AllYearsResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Data",
+            "items": {
+              "type": "object",
+              "description": "Years info",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "description": "User id",
+                  "example": "..."
+                },
+                "year": {
+                  "type": "string",
+                  "description": "Year",
+                  "example": "2021"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AllFilesResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Data",
+            "items": {
+              "type": "object",
+              "description": "Files info",
+              "properties": {
+                "fileId": {
+                  "type": "string",
+                  "description": "File Id",
+                  "example": "..."
+                },
+                "fileIndex": {
+                  "type": "string",
+                  "description": "File index",
+                  "example": "..."
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreatedResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Data (opcional)"
+          }
+        }
+      },
       "BadRequestError": {
         "type": "object",
         "properties": {
@@ -2640,6 +3521,26 @@
             "type": "string",
             "description": "Error code",
             "example": "not_found"
+          }
+        }
+      },
+      "ConflictError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "El ... ya existe."
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code",
+            "example": "conflict"
           }
         }
       },

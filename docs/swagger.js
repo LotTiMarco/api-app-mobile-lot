@@ -75,6 +75,12 @@ const doc = {
                 update: {
                     photo: 'base64()' // Base64
                 }
+            },
+            NewYear: {
+                year: '...'
+            },
+            NewFile: {
+                fileIndex: '...'
             }
         },
         securitySchemes:{
@@ -157,6 +163,18 @@ const doc = {
                     }
                 },
                 summary: "Update person image"
+            },
+            newYear:{
+                value:{
+                    year: '2024'
+                },
+                summary: "New year"
+            },
+            newFile:{
+                value:{
+                    fileIndex: '...'
+                },
+                summary: "New file"
             }
         },
         responses: {
@@ -407,6 +425,80 @@ const doc = {
                     }
                 }
             },
+            AllYearsResponse: {
+                type: "object",
+                properties: {
+                    status: {
+                        type: "string",
+                        description: "Status",
+                        example: "success"
+                    },
+                    data: {
+                        type: "array",
+                        description: "Data",
+                        items: {
+                            type: "object",
+                            description: "Years info",
+                            properties: {
+                                userId: {
+                                    type: "string",
+                                    description: "User id",
+                                    example: "..."
+                                },
+                                year: {
+                                    type: "string",
+                                    description: "Year",
+                                    example: "2021"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            AllFilesResponse: {
+                type: "object",
+                properties: {
+                    status: {
+                        type: "string",
+                        description: "Status",
+                        example: "success"
+                    },
+                    data: {
+                        type: "array",
+                        description: "Data",
+                        items: {
+                            type: "object",
+                            description: "Files info",
+                            properties: {
+                                fileId: {
+                                    type: "string",
+                                    description: "File Id",
+                                    example: "..."
+                                },
+                                fileIndex: {
+                                    type: "string",
+                                    description: "File index",
+                                    example: "..."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            CreatedResponse: {
+                type: "object",
+                properties: {
+                    status: {
+                        type: "string",
+                        description: "Status",
+                        example: "success"
+                    },
+                    data: {
+                        type: "object",
+                        description: "Data (opcional)"
+                    }
+                }
+            },
             BadRequestError: {
                 type: "object",
                 properties: {
@@ -464,6 +556,26 @@ const doc = {
                         type: "string",
                         description: "Error code",
                         example: "not_found"
+                    }
+                }
+            },
+            ConflictError: {
+                type: "object",
+                properties: {
+                    status: {
+                        type: "string",
+                        description: "Status",
+                        example: "error"
+                    },
+                    message: {
+                        type: "string",
+                        description: "Error message",
+                        example: "El ... ya existe."
+                    },
+                    code: {
+                        type: "string",
+                        description: "Error code",
+                        example: "conflict"
                     }
                 }
             },

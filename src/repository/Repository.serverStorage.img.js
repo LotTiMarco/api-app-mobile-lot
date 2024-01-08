@@ -1,13 +1,10 @@
-import IRepositoryStoreImg from "./IRepository.store.img.js";
 import { validateBase64String } from "../functions/validateBase64String.js";
 import { v4 as uuid } from 'uuid';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
-// import imageType from 'image-type';
 
-export default class RepositoryServerStorageImg extends IRepositoryStoreImg {
+export default class RepositoryServerStorageImg {
     constructor() {
-        super();
         this._storage = {};
     }
 
