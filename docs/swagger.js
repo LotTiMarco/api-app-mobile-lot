@@ -485,6 +485,41 @@ const doc = {
                     }
                 }
             },
+            AllSubscriptionsResponse: {
+                type: "object",
+                properties: {
+                    status: {
+                        type: "string",
+                        description: "Status",
+                        example: "success",
+                    },
+                    data: {
+                        type: "array",
+                        description: "Data",
+                        items: {
+                            type: "object",
+                            description: "Subscriptions info",
+                            properties: {
+                                tokenDevice: {
+                                    type: "string",
+                                    description: "Token device",
+                                    example: "..."
+                                },
+                                userEmail: {
+                                    type: "string",
+                                    description: "Email personal o de la empresa",
+                                    example: "..."
+                                },
+                                userRole: {
+                                    type: "string",
+                                    description: "User role",
+                                    example: "..."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             CreatedResponse: {
                 type: "object",
                 properties: {

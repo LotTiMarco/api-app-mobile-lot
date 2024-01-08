@@ -10,6 +10,10 @@ const repositoryDB = new RepositoryPostgre();
 const notificationManager = new FCMIntegration();
 
 router.get('/', async (req, res, next) => {
+    /*
+    #swagger.tags = ['Notifications']
+    #swagger.ignore = true
+     */
     try {
         return res.status(200).json({ status: 'success', message: "API PARA NOTIFICACIONES" });
     } catch (error) {
@@ -22,6 +26,10 @@ router.post(
     checkAuth,
     allowRoles(['admin', 'customer', 'auditor', 'commercial']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Notifications']
+        #swagger.ignore = true
+         */
         try {
             await notificationManager.configure();
             await repositoryDB.connect()
@@ -55,6 +63,43 @@ router.post(
     checkAuth,
     allowRoles(['admin', 'customer', 'auditor', 'commercial']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Notifications']
+        #swagger.operationId = 'api.notifications/subscribe'
+        #swagger.summary = 'Endpoint para suscribir un dispositivo.'
+        #swagger.description = 'Endpoint para suscribir un dispositivo, vinculado al usuario gracias al payload del accessToken.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['tokenDevice'] = {
+            in: 'path',
+            description: 'Token del dispositivo.',
+            required: true,
+            type: 'string'
+        }
+        #swagger.responses[204] = {
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
         try {
             await repositoryDB.connect()
             const { rows: users } = await repositoryDB.query(
@@ -98,6 +143,43 @@ router.post(
     checkAuth,
     allowRoles(['admin', 'customer', 'auditor', 'commercial']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Notifications']
+        #swagger.operationId = 'api.notifications/unsubscribe'
+        #swagger.summary = 'Endpoint para desuscribir un dispositivo.'
+        #swagger.description = 'Endpoint para desuscribir un dispositivo, vinculado al usuario gracias al payload del accessToken.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['tokenDevice'] = {
+            in: 'path',
+            description: 'Token del dispositivo.',
+            required: true,
+            type: 'string'
+        }
+        #swagger.responses[204] = {
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
@@ -120,6 +202,35 @@ router.get(
     checkAuth,
     allowRoles(['admin']),
     async (req, res, next) => {
+        /*
+        #swagger.tags = ['Notifications']
+        #swagger.operationId = 'api.notifications/subscriptions'
+        #swagger.summary = 'Endpoint para obtener las suscripciones.'
+        #swagger.description = 'Endpoint para obtener las suscripciones.'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.responses[200] = {
+            schema:{
+                $ref: "#/components/responses/AllSubscriptionsResponse"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
@@ -130,9 +241,9 @@ router.get(
 
             if (rows.length > 0) {
                 return res.status(200).json({ status: 'success', data: rows });
-            } else {
-                return res.status(204).json({ status: 'success'});
             }
+            return res.status(404).json({ status: 'error', message: 'No se encontraron suscripciones.', code: 'subscriptions_not_found' });
+
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
