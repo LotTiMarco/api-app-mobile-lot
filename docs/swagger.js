@@ -11,7 +11,17 @@ const doc = {
             name: "marco.bardales@lotinternacional.com",
         }
     },
-    host: host,
+    // host: host,
+    servers: [
+        {
+            url: "http://localhost/",
+            description: "TEST SERVER"
+        },
+        {
+            url: "https://backend-app-lot.onrender.com/",
+            description: "PRODUCTION SERVER (free)"
+        }
+    ],
     basePath: "/",
     schemes: ['http', 'https'],
     consumes: ['application/json'],

@@ -10,10 +10,12 @@
   },
   "servers": [
     {
-      "url": "http://localhost/"
+      "url": "http://localhost/",
+      "description": "TEST SERVER"
     },
     {
-      "url": "https://localhost/"
+      "url": "https://backend-app-lot.onrender.com/",
+      "description": "PRODUCTION SERVER (free)"
     }
   ],
   "paths": {
