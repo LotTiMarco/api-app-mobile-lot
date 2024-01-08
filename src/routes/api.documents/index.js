@@ -708,6 +708,8 @@ router.delete(
                 case 'monitoringReports':
                     await repositoryDB.query('DELETE FROM "monitoringReports" WHERE "monitoringReportId" = $1;', [req.params.docId]);
                     break;
+                default:
+                    break;
             }
             return res.status(204).json({ status: 'success' });
         } catch (error) {
@@ -717,3 +719,5 @@ router.delete(
         }
     }
 );
+
+export default router;
