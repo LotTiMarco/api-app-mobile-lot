@@ -700,7 +700,7 @@ router.post(
     '/profile/:userId/image',
     validateURLParams('userId'),
     checkAuth,
-    allowRoles(['admin', 'auditor']),
+    allowRoles(['customer', 'auditor', 'commercial', 'admin']),
     async (req, res, next) => {
         /*
         #swagger.tags = ['Usuarios']
