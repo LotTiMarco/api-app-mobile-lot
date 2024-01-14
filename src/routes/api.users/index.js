@@ -338,12 +338,16 @@ router.post(
             const newPassword = await hashPassword(password);
             const newUserId = uuid()
             const newUserRole = role;
+
+            await repositoryDB.query('BEGIN;'); // Inicia la transaccion
+
             const { rows: userCreated } = await repositoryDB.query(
                 `INSERT INTO users (email, password, "userId", "userRole") VALUES ($1, $2, $3, $4) RETURNING id;`,
                 [newEmail, newPassword, newUserId, newUserRole]
             );
             const id = userCreated[0].id;
             if (!id) {
+                await repositoryDB.query('ROLLBACK;'); // Cancela la transaccion
                 return res.status(500).json({ status: 'error', message: 'No se pudo crear el usuario.', code: 'user_creation_failed' });
             }
 
@@ -360,6 +364,7 @@ router.post(
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "userId", "companyName" AS name, ruc AS identifier ;`,
                     [newUserId, companyName, ruc, address, legalRepresentative, email, phone, country, logo]
                 );
+                await repositoryDB.query('COMMIT;'); // Finaliza la transaccion
                 return res.status(201).json({ status: 'success', data: companyCreated[0] });
             } else if (role === 'auditor' || role === 'commercial') {
                 const { fullName, dni, address, email, phone, country } = profile;
@@ -370,11 +375,14 @@ router.post(
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "userId", "fullName" AS name, dni AS identifier;`,
                     [newUserId, fullName, dni, address, email, phone, country, photo]
                 );
+                await repositoryDB.query('COMMIT;'); // Finaliza la transaccion
                 return res.status(201).json({ status: 'success', data: personCreated[0] });
             } else {
+                await repositoryDB.query('ROLLBACK;'); // Cancela la transaccion
                 return res.status(500).json({ status: 'error', message: 'No se pudo crear el usuario.', code: 'user_creation_failed' });
             }
         } catch (error) {
+            await repositoryDB.query('ROLLBACK;'); // Cancela la transaccion
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
         } finally {
             await repositoryDB.disconnect();
@@ -602,8 +610,8 @@ router.post(
             if (companies.length > 0) {
                 const {address} = update;
                 const {rows} = await repositoryDB.query(
-                    `UPDATE companies SET address = $1`,
-                    [address]
+                    `UPDATE companies SET address = $1 WHERE "userId" = $2`,
+                    [address, req.params.userId]
                 );
                 return res.status(204).json({status: 'success'});
             }
@@ -615,8 +623,8 @@ router.post(
             if (persons.length > 0) {
                 const {address, phone} = update;
                 const {rows} = await repositoryDB.query(
-                    `UPDATE persons SET address = $1, phone = $2`,
-                    [address, phone]
+                    `UPDATE persons SET address = $1, phone = $2 WHERE "userId" = $3`,
+                    [address, phone, req.params.userId]
                 );
                 return res.status(204).json({status: 'success'});
             }
