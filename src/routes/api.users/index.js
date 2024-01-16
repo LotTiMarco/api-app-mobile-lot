@@ -67,7 +67,7 @@ router.get(
         }
         #swagger.parameters['limit'] = {
             in: 'query',
-            description: 'Número de elementos por página(10 por defecto, máximo 50)',
+            description: 'Número de elementos por página(10 por defecto, máximo 50, limit=0 para ignorar paginación)',
             required: false,
             type: 'integer'
         }
@@ -162,7 +162,7 @@ router.get(
          }
          #swagger.parameters['limit'] = {
              in: 'query',
-             description: 'Número de elementos por página(10 por defecto, máximo 50)',
+             description: 'Número de elementos por página(10 por defecto, máximo 50, limit=0 para ignorar paginación)',
              required: false,
              type: 'integer'
          }
