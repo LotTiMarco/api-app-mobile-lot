@@ -69,7 +69,7 @@ router.get(
         try {
             await repositoryDB.connect();
             const { rows } = await repositoryDB.query(
-                `SELECT "userId", year FROM "customersYears" WHERE "userId" = $1;`,
+                `SELECT "userId", year FROM "customersYears" WHERE "userId" = $1 ORDER BY year DESC;`,
                 [req.params.userId]
             );
 
@@ -253,7 +253,7 @@ router.get(
                         where f."customerYearId" = (
                             select "customerYearId" from "customersYears" cy 
                             where cy."userId" = $1 AND cy."year" = $2
-                        );`,
+                        ) ORDER BY "fileIndex" ASC;`,
                 [req.params.userId, req.params.year]
             );
 
