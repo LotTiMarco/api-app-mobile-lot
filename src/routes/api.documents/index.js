@@ -453,7 +453,7 @@ router.get(
          */
         const validTypeProcess = new Set(['certification', 'recertification']);
         const validTypeDoc = new Set(['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']);
-        const idNameForTypeDoc = ['quoteId', 'contractBillingId', 'auditPlanId', 'auditReportId', 'recertificationPlanId', 'recertificationReportId', 'certificateId', 'monitoringPlanId', 'monitoringReportId']
+        const idNameForTypeDoc = ['quoteId', 'contractBillingId', 'auditPlanId', 'auditReportId', 'recertificationPlanId', 'recertificationReportId', 'certificateId', 'monitoringPlanId', 'monitoringReportId'];
         if (!validTypeProcess.has(req.params.typeProcess)) {
             return res.status(400).json({ status: 'error', message: 'El tipo de proceso no es válido.', code: 'invalid_type_process' });
         }
@@ -586,6 +586,7 @@ router.post(
          */
         const validTypeProcess = new Set(['certification', 'recertification']);
         const validTypeDoc = new Set(['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']);
+        const idNameForTypeDoc = ['quoteId', 'contractBillingId', 'auditPlanId', 'auditReportId', 'recertificationPlanId', 'recertificationReportId', 'certificateId', 'monitoringPlanId', 'monitoringReportId'];
         if (!validTypeProcess.has(req.params.typeProcess)) {
             return res.status(400).json({ status: 'error', message: 'El tipo de proceso no es válido.', code: 'invalid_type_process' });
         }
@@ -608,8 +609,14 @@ router.post(
                 return res.status(404).json({ status: 'error', message: 'File not found.', code: 'file_not_found' });
             }
 
+            // Obtener la posición del tipo de documento en el conjunto
+            const typeDocPosition = Array.from(validTypeDoc).indexOf(req.params.typeDoc);
+
+            // Obtener el nombre del ID correspondiente en la lista
+            const idName = idNameForTypeDoc[typeDocPosition];
+
             const { rows: docs } = await repositoryDB.query(
-                `INSERT INTO "${req.params.typeDoc}" ("typeProcess", "fileId", name, url) VALUES ($1, $2, $3, $4) RETURNING * ;`,
+                `INSERT INTO "${req.params.typeDoc}" ("typeProcess", "fileId", name, url) VALUES ($1, $2, $3, $4) RETURNING "${idName}" AS "docId", "typeProcess", "fileId", name, url, created_at;`,
                 [req.params.typeProcess, req.params.fileId, name, pathFile]
             );
 
