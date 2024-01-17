@@ -453,6 +453,7 @@ router.get(
          */
         const validTypeProcess = new Set(['certification', 'recertification']);
         const validTypeDoc = new Set(['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']);
+        const idNameForTypeDoc = ['quoteId', 'contractBillingId', 'auditPlanId', 'auditReportId', 'recertificationPlanId', 'recertificationReportId', 'certificateId', 'monitoringPlanId', 'monitoringReportId']
         if (!validTypeProcess.has(req.params.typeProcess)) {
             return res.status(400).json({ status: 'error', message: 'El tipo de proceso no es válido.', code: 'invalid_type_process' });
         }
@@ -471,7 +472,13 @@ router.get(
                 return res.status(404).json({ status: 'error', message: 'File not found.', code: 'file_not_found' });
             }
 
-            const query = `SELECT * FROM "${req.params.typeDoc}" t where t."fileId" = $1 and t."typeProcess" = $2;`;
+            // Obtener la posición del tipo de documento en el conjunto
+            const typeDocPosition = Array.from(validTypeDoc).indexOf(req.params.typeDoc);
+
+            // Obtener el nombre del ID correspondiente en la lista
+            const idName = idNameForTypeDoc[typeDocPosition];
+
+            const query = `SELECT "${idName}" AS "docId", "typeProcess", "fileId", name, url, created_at FROM "${req.params.typeDoc}" t where t."fileId" = $1 and t."typeProcess" = $2;`;
             const { rows: docs } = await repositoryDB.query(
                 query,
                 [req.params.fileId, req.params.typeProcess]
