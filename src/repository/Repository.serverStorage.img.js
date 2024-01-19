@@ -32,8 +32,15 @@ export default class RepositoryServerStorageImg {
 
     async _deleteImage(filePath) {
         try {
-            fs.unlinkSync(filePath); // Elimina el archivo
-            return true;
+            // Comprueba si la ruta al archivo existe
+            if (fs.existsSync(filePath)) {
+                // Si existe, elimina el archivo
+                fs.unlinkSync(filePath);
+                console.log(`Imagen eliminada exitosamente: ${filePath}`);
+            } else {
+                // Si no existe, muestra un mensaje y termina sin lanzar un error
+                console.log(`La imagen no existe en la ruta: ${filePath}`);
+            }
         } catch (error) {
             throw new Error(`Error al eliminar la imagen: ${error.message}`);
         }

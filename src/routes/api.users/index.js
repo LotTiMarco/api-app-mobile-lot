@@ -779,8 +779,13 @@ router.post(
                 if (!logo) {
                     return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
                 }
+                //Eliminar imagen anterior
+                const oldLogo = companies[0].logo;
+                if (oldLogo) {
+                    await repositoryStorageImg._deleteImage(oldLogo);
+                }
+                //Guardar nueva imagen
                 const filePath = await repositoryStorageImg._saveImage(logo);
-
                 const { rows } = await repositoryDB.query(
                     `UPDATE companies SET logo = $1 WHERE "userId" = $2`,
                     [filePath, req.params.userId]
@@ -797,6 +802,12 @@ router.post(
                 if (!photo) {
                     return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
                 }
+                //Eliminar imagen anterior
+                const oldPhoto = persons[0].photo;
+                if (oldPhoto) {
+                    await repositoryStorageImg._deleteImage(oldPhoto);
+                }
+                //Guardar nueva imagen
                 const filePath = await repositoryStorageImg._saveImage(photo);
                 const { rows } = await repositoryDB.query(
                     `UPDATE persons SET photo = $1 WHERE "userId" = $2`,
