@@ -5,6 +5,7 @@ import {checkAuth} from "../../middlewares/checkAuth.js";
 import {validateURLParams} from "../../middlewares/validateURLParams.js";
 import {allowRoles} from "../../middlewares/allowRoles.js";
 import upload from "../../middlewares/multer.js";
+import { sendEmail, notifyNewDoc } from "../../Services/SMTP.integration.js";
 
 const router = Router();
 const repositoryDB = new RepositoryPostgre();
@@ -604,7 +605,7 @@ router.post(
             const pathFile = file.destination + '/' + file.filename;
 
             const { rows: files } = await repositoryDB.query(
-                `SELECT "fileId" FROM files WHERE "fileId" = $1;`,
+                `SELECT "fileId", "customerYearId", "fileIndex" FROM files WHERE "fileId" = $1;`,
                 [req.params.fileId]
             );
             if (files.length <= 0) {
@@ -621,6 +622,29 @@ router.post(
                 `INSERT INTO "${req.params.typeDoc}" ("typeProcess", "fileId", name, url) VALUES ($1, $2, $3, $4) RETURNING "${idName}" AS "docId", "typeProcess", "fileId", name, url, created_at;`,
                 [req.params.typeProcess, req.params.fileId, name, pathFile]
             );
+
+            // Enviar correo electronico al usuario
+
+            const { rows: years } = await repositoryDB.query(
+                `SELECT year, "userId" FROM "customersYears" WHERE "customerYearId" = $1;`,
+                [files[0].customerYearId]
+            );
+            const { rows: users } = await repositoryDB.query(
+                `SELECT "userId", email FROM companies WHERE "userId" = $1;`,
+                [years[0].userId]
+            );
+
+            const emailTo = users[0].email;
+            const doc_fileIndex = files[0].fileIndex;
+            const doc_year = years[0].year;
+            const doc_name = name;
+
+            const emailSent = await notifyNewDoc(
+                emailTo,
+                doc_year,
+                doc_fileIndex,
+                doc_name
+            )
 
             return res.status(201).json({ status: 'success', data: docs[0] });
         } catch (error) {
