@@ -1,5 +1,6 @@
 import { Router} from 'express';
 import RepositoryPostgre from "../../repository/Repository.postgre.js";
+import RepositoryServerStorageDoc from "../../repository/Repository.serverStorage.doc.js";
 import {checkAuth} from "../../middlewares/checkAuth.js";
 import {validateURLParams} from "../../middlewares/validateURLParams.js";
 import {allowRoles} from "../../middlewares/allowRoles.js";
@@ -7,6 +8,7 @@ import upload from "../../middlewares/multer.js";
 
 const router = Router();
 const repositoryDB = new RepositoryPostgre();
+const repositoryServerStorageDoc = new RepositoryServerStorageDoc();
 
 router.get('/', async (req, res, next) => {
     /*
@@ -687,6 +689,7 @@ router.delete(
          }
          */
         const validTypeDoc = new Set(['quotes', 'contractsBillings', 'auditPlans', 'auditReports', 'recertificationPlans', 'recertificationReports', 'certificates', 'monitoringPlans', 'monitoringReports']);
+        const idNameForTypeDoc = ['quoteId', 'contractBillingId', 'auditPlanId', 'auditReportId', 'recertificationPlanId', 'recertificationReportId', 'certificateId', 'monitoringPlanId', 'monitoringReportId'];
         if (!validTypeDoc.has(req.params.typeDoc)) {
             return res.status(400).json({ status: 'error', message: 'El tipo de documento no es válido.', code: 'invalid_type_doc' });
         }
@@ -694,37 +697,21 @@ router.delete(
         try {
             await repositoryDB.connect();
 
-            switch (req.params.typeDoc) {
-                case 'quotes':
-                    await repositoryDB.query('DELETE FROM quotes WHERE "quoteId" = $1;', [req.params.docId]);
-                    break;
-                case 'contractsBillings':
-                    await repositoryDB.query('DELETE FROM "contractsBillings" WHERE "contractBillingId" = $1;', [req.params.docId]);
-                    break;
-                case 'auditPlans':
-                    await repositoryDB.query('DELETE FROM "auditPlans" WHERE "auditPlanId" = $1;', [req.params.docId]);
-                    break;
-                case 'auditReports':
-                    await repositoryDB.query('DELETE FROM "auditReports" WHERE "auditReportId" = $1;', [req.params.docId]);
-                    break;
-                case 'recertificationPlans':
-                    await repositoryDB.query('DELETE FROM "recertificationPlans" WHERE "recertificationPlanId" = $1;', [req.params.docId]);
-                    break;
-                case 'recertificationReports':
-                    await repositoryDB.query('DELETE FROM "recertificationReports" WHERE "recertificationReportId" = $1;', [req.params.docId]);
-                    break;
-                case 'certificates':
-                    await repositoryDB.query('DELETE FROM certificates WHERE "certificateId" = $1;', [req.params.docId]);
-                    break;
-                case 'monitoringPlans':
-                    await repositoryDB.query('DELETE FROM "monitoringPlans" WHERE "monitoringPlanId" = $1;', [req.params.docId]);
-                    break;
-                case 'monitoringReports':
-                    await repositoryDB.query('DELETE FROM "monitoringReports" WHERE "monitoringReportId" = $1;', [req.params.docId]);
-                    break;
-                default:
-                    break;
+            // Obtener la posición del tipo de documento en el conjunto
+            const typeDocPosition = Array.from(validTypeDoc).indexOf(req.params.typeDoc);
+
+            // Obtener el nombre del ID correspondiente en la lista
+            const idName = idNameForTypeDoc[typeDocPosition];
+
+            const { rows: docs } = await repositoryDB.query(
+                `SELECT url FROM "${req.params.typeDoc}" WHERE "${idName}" = $1;`,
+                [req.params.docId]
+            );
+            if (docs.length > 0) {
+                if (docs[0].url) await repositoryServerStorageDoc._deleteDoc(docs[0].url);
             }
+            await repositoryDB.query(`DELETE FROM "${req.params.typeDoc}" WHERE "${idName}" = $1;`, [req.params.docId]);
+
             return res.status(204).json({ status: 'success' });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
