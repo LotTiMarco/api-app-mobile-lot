@@ -766,7 +766,7 @@
           {
             "name": "limit",
             "in": "query",
-            "description": "Número de elementos por página(10 por defecto, máximo 50)",
+            "description": "Número de elementos por página(10 por defecto, máximo 50, limit=0 para ignorar paginación)",
             "required": false,
             "schema": {
               "type": "integer"
@@ -867,7 +867,7 @@
           {
             "name": "limit",
             "in": "query",
-            "description": "Número de elementos por página(10 por defecto, máximo 50)",
+            "description": "Número de elementos por página(10 por defecto, máximo 50, limit=0 para ignorar paginación)",
             "required": false,
             "schema": {
               "type": "integer"
@@ -1572,6 +1572,117 @@
                 "updatePersonImage": {
                   "$ref": "#/components/examples/updatePersonImage"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.users/change-password/{userId}": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Endpoint para cambiar la contraseña de un usuario",
+        "description": "Endpoint para cambiar la contraseña de un usuario (customer, auditor, commercial)..",
+        "operationId": "api.users/change-password/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id de usuario"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePassword"
               }
             }
           }
@@ -3050,6 +3161,18 @@
         },
         "xml": {
           "name": "UpdatePersonImage"
+        }
+      },
+      "ChangePassword": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "example": "..."
+          }
+        },
+        "xml": {
+          "name": "ChangePassword"
         }
       },
       "NewYear": {

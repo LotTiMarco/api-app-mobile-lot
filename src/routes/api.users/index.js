@@ -824,4 +824,83 @@ router.post(
     }
 );
 
+router.post(
+    '/change-password/:userId',
+    validateURLParams('userId'),
+    checkAuth,
+    allowRoles(['admin']),
+    async (req, res, next) => {
+        /*
+        #swagger.tags = ['Usuarios']
+        #swagger.operationId = 'api.users/change-password/{userId}'
+        #swagger.summary = 'Endpoint para cambiar la contraseña de un usuario'
+        #swagger.description = 'Endpoint para cambiar la contraseña de un usuario (customer, auditor, commercial)..'
+        #swagger.security = [{
+            "bearerAuth": []
+        }]
+        #swagger.parameters['userId'] = {
+            in: 'path',
+            description: 'Id de usuario',
+            required: true,
+            type: 'string'
+        }
+        #swagger.requestBody = {
+            required: true,
+            content: {
+                "application/json": {
+                    schema: {
+                        $ref: "#/components/schemas/ChangePassword"
+                    }
+                }
+            }
+        }
+        #swagger.responses[400] = {
+            schema:{
+                $ref: "#/components/responses/BadRequestError"
+            }
+        }
+        #swagger.responses[401] = {
+            schema:{
+                $ref: "#/components/responses/UnauthorizedError"
+            }
+        }
+        #swagger.responses[404] = {
+            schema:{
+                $ref: "#/components/responses/NotFoundError"
+            }
+        }
+        #swagger.responses[500] = {
+            schema:{
+                $ref: "#/components/responses/InternalServerError"
+            }
+        }
+         */
+        try {
+            await repositoryDB.connect();
+
+            const { newPassword } = req.body;
+            if (!newPassword) {
+                return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios.', code: 'missing_required_fields' });
+            }
+
+            const { rows: users } = await repositoryDB.query(
+                `SELECT * FROM users WHERE "userId" = $1;`,
+                [req.params.userId]
+            );
+            if (users.length > 0) {
+                const { newPassword } = req.body;
+                const newPasswordHashed = await hashPassword(newPassword);
+                const { rows } = await repositoryDB.query(
+                    `UPDATE users SET password = $1 WHERE "userId" = $2`,
+                    [newPasswordHashed, req.params.userId]
+                );
+                return res.status(204).json({ status: 'success' });
+            }
+            return res.status(404).json({ status: 'error', message: 'User not found.', code: 'user_not_found' });
+        } catch (error) {
+            return res.status(500).json({ status: 'error', message: error.message, code: 'internal_server_error' });
+        }
+    }
+)
+
 export default router;

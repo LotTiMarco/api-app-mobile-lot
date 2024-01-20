@@ -86,6 +86,9 @@ const doc = {
                     photo: 'base64()' // Base64
                 }
             },
+            ChangePassword: {
+                newPassword: '...'
+            },
             NewYear: {
                 year: '...'
             },
