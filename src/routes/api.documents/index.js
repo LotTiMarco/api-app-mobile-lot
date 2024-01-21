@@ -4,7 +4,7 @@ import RepositoryServerStorageDoc from "../../repository/Repository.serverStorag
 import {checkAuth} from "../../middlewares/checkAuth.js";
 import {validateURLParams} from "../../middlewares/validateURLParams.js";
 import {allowRoles} from "../../middlewares/allowRoles.js";
-import upload from "../../middlewares/multer.js";
+import {uploadPdf} from "../../middlewares/multer.js";
 import { sendEmail, notifyNewDoc } from "../../Services/SMTP.integration.js";
 
 const router = Router();
@@ -501,7 +501,7 @@ router.post(
     validateURLParams('fileId', 'typeProcess', 'typeDoc'),
     checkAuth,
     allowRoles(['commercial', 'admin']),
-    upload.single('file'),
+    uploadPdf.single('file'),
     async (req, res, next) => {
         /*
          #swagger.tags = ['Documents']
