@@ -533,6 +533,45 @@ const doc = {
                     }
                 }
             },
+            AllServicesResponse: {
+                type: "object",
+                properties: {
+                    status: {
+                        type: "string",
+                        description: "Status",
+                        example: "success"
+                    },
+                    data: {
+                        type: "array",
+                        description: "Data",
+                        items: {
+                            type: "object",
+                            properties: {
+                                id: {
+                                    type: "integer",
+                                    description: "Service id",
+                                    example: "..."
+                                },
+                                title: {
+                                    type: "string",
+                                    description: "Title",
+                                    example: "..."
+                                },
+                                thumbnailUrl: {
+                                    type: "string",
+                                    description: "Thumbnail url",
+                                    example: "..."
+                                },
+                                pdfUrl: {
+                                    type: "string",
+                                    description: "Pdf url",
+                                    example: "..."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             CreatedResponse: {
                 type: "object",
                 properties: {
@@ -544,6 +583,16 @@ const doc = {
                     data: {
                         type: "object",
                         description: "Data (opcional)"
+                    }
+                }
+            },
+            NonContentResponse: {
+                type: "object",
+                properties: {
+                    status: {
+                        type: "string",
+                        description: "Status",
+                        example: "success",
                     }
                 }
             },

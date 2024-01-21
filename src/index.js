@@ -15,6 +15,7 @@ import apiCommercials from "./routes/api.commercials/index.js";
 import apiUsers from "./routes/api.users/index.js";
 import apiDocuments from "./routes/api.documents/index.js";
 import apiNotifications from "./routes/api.notifications/index.js";
+import apiServices from "./routes/api.services/index.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -39,6 +40,7 @@ app.use('/api.commercials', apiCommercials);
 app.use('/api.users', apiUsers);
 app.use('/api.documents', apiDocuments);
 app.use('/api.notifications', apiNotifications);
+app.use('/api.services', apiServices);
 
 // Static files
 app.use('/uploads', express.static('uploads')); // Ruta relativa, requiere iniciar el servidor desde la raiz del proyecto

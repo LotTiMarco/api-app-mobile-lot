@@ -2975,6 +2975,321 @@
           }
         ]
       }
+    },
+    "/api.services/all": {
+      "get": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Endpoint para obtener una lista de los servicios.",
+        "description": "Endpoint para obtener los servicios que ofrece LOT Internacional.",
+        "operationId": "api.services/all",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/AllServicesResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/AllServicesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.services/new": {
+      "post": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Endpoint para crear un nuevo servicio.",
+        "description": "Endpoint para crear un nuevo servicio.",
+        "operationId": "api.services/new",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NonContentResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NonContentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "required": true,
+                    "type": "string"
+                  },
+                  "thumbnail": {
+                    "required": true,
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "pdf": {
+                    "required": true,
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.services/{serviceId}": {
+      "delete": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Endpoint para eliminar un servicio.",
+        "description": "Endpoint para eliminar un servicio.",
+        "operationId": "api.services/:serviceId",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id de servicio"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NonContentResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NonContentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/BadRequestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/ConflictError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/responses/InternalServerError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -3637,6 +3952,45 @@
           }
         }
       },
+      "AllServicesResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Data",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "Service id",
+                  "example": "..."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title",
+                  "example": "..."
+                },
+                "thumbnailUrl": {
+                  "type": "string",
+                  "description": "Thumbnail url",
+                  "example": "..."
+                },
+                "pdfUrl": {
+                  "type": "string",
+                  "description": "Pdf url",
+                  "example": "..."
+                }
+              }
+            }
+          }
+        }
+      },
       "CreatedResponse": {
         "type": "object",
         "properties": {
@@ -3648,6 +4002,16 @@
           "data": {
             "type": "object",
             "description": "Data (opcional)"
+          }
+        }
+      },
+      "NonContentResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status",
+            "example": "success"
           }
         }
       },

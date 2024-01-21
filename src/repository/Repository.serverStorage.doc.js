@@ -8,6 +8,11 @@ export default class RepositoryServerStorageDoc {
         this._storage = {};
     }
 
+    async _saveDoc() {
+        console.log('RepositoryServerStorageDoc._saveDoc() not implemented');
+        console.log('use multer middleware to save docs');
+    }
+
     async _deleteDoc(filePath) {
         try {
             // Comprueba si la ruta al archivo existe
