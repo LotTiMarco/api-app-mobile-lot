@@ -3,12 +3,12 @@ import NodeMailer from 'nodemailer'
 export const sendEmail = async (to, title, message) => {
     try {
         const transporter = NodeMailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT,
-            secure: process.env.SMTP_SECURE,
+            host: process.env.AAML_SMTP_HOST,
+            port: process.env.AAML_SMTP_PORT,
+            secure: process.env.AAML_SMTP_SECURE,
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user: process.env.AAML_SMTP_USER,
+                pass: process.env.AAML_SMTP_PASS,
             },
             tls: {
                 rejectUnauthorized: false,
@@ -16,8 +16,8 @@ export const sendEmail = async (to, title, message) => {
         });
 
         return await transporter.sendMail({
-            from: process.env.SMTP_FROM, // sender address
-            to: `${process.env.SMTP_USER}, marcobardalesrodriguez@outlook.com`, // list of receivers
+            from: process.env.AAML_SMTP_FROM, // sender address
+            to: `${process.env.AAML_SMTP_USER}, marcobardalesrodriguez@outlook.com`, // list of receivers
             subject: title, // Subject line
             text: message, // plain text body
             // html: "<b>Hello world?</b>", // html body
@@ -57,12 +57,12 @@ export const notifyNewDoc = async (to, year, fileIndex, nameDocument) => {
     `;
     try {
         const transporter = NodeMailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT,
-            secure: process.env.SMTP_SECURE,
+            host: process.env.AAML_SMTP_HOST,
+            port: process.env.AAML_SMTP_PORT,
+            secure: process.env.AAML_SMTP_SECURE,
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user: process.env.AAML_SMTP_USER,
+                pass: process.env.AAML_SMTP_PASS,
             },
             tls: {
                 rejectUnauthorized: false,
@@ -70,8 +70,8 @@ export const notifyNewDoc = async (to, year, fileIndex, nameDocument) => {
         });
 
         return await transporter.sendMail({
-            from: process.env.SMTP_FROM, // sender address
-            to: `${process.env.SMTP_USER}, ${to}`, // list of receivers
+            from: process.env.AAML_SMTP_FROM, // sender address
+            to: `${process.env.AAML_SMTP_USER}, ${to}`, // list of receivers
             subject: title, // Subject line
             // text: message, // plain text body
             html: message, // html body

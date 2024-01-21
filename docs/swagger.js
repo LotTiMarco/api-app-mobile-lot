@@ -1,7 +1,7 @@
 import swaggerAutogen from 'swagger-autogen';
 
 // Get host dynamically
-const host = process.env.WEBSITE_HOSTNAME || 'localhost';
+const host = process.env.AAML_WEBSITE_HOSTNAME || 'localhost';
 const doc = {
     info: {
         version: "0.1.1",
@@ -20,6 +20,10 @@ const doc = {
         {
             url: "https://backend-app-lot.onrender.com/",
             description: "PRODUCTION SERVER (free)"
+        },
+        {
+            url: "https://api.mobile.lotplataforma.com/",
+            description: "PRODUCTION SERVER"
         }
     ],
     basePath: "/",

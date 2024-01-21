@@ -21,7 +21,7 @@ const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Settings
-app.set('port', process.env.PORT || 5000);
+app.set('port', process.env.AAML_PORT || 25000);
 
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(config.application.cors.server));
@@ -81,7 +81,7 @@ app.get('/v2/docs', (req, res) => {
     </head>
     <body>
       <rapi-doc
-        spec-url="${req.protocol}://${req.hostname}/docs/swagger.json"
+        spec-url="${process.env.AAML_WEBSITE_PROTOCOL}://${process.env.AAML_WEBSITE_HOSTNAME}/docs/swagger.json"
         render-style = "read"
         show-header = 'false'
         style = "height:100vh; width:100%"
@@ -97,4 +97,4 @@ app.use((err, req, res, next) => {
 });
 
 // Starting the server
-app.listen(app.get('port'), () => console.log(`Server on port ${process.env.PORT}`));
+app.listen(app.get('port'), () => console.log(`Server on port ${process.env.AAML_PORT}`));

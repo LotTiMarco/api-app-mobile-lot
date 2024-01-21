@@ -9,11 +9,11 @@ export default class RepositoryPostgre extends IRepositoryDatabase {
         this._connection = null;
         this._pool = null;
         this._config = {
-            user: process.env.DB_USERNAME,
-            host: process.env.DB_HOSTNAME,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_DATABASE,
-            port: process.env.DB_PORT,
+            user: process.env.AAML_DB_USERNAME,
+            host: process.env.AAML_DB_HOSTNAME,
+            password: process.env.AAML_DB_PASSWORD,
+            database: process.env.AAML_DB_DATABASE,
+            port: process.env.AAML_DB_PORT,
             ssl: {
                 rejectUnauthorized: false,
             }

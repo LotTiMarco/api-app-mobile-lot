@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 const { verify: verifyToken } = jwt;
-const secretKey = process.env.JWT_SECRET_KEY;
+const secretKey = process.env.AAML_JWT_SECRET_KEY;
 
 // Middleware para manejar la autorización
 export const checkAuth = (req, res, next) => {
