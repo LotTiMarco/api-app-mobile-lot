@@ -500,7 +500,7 @@ router.post(
     '/docs/:fileId/:typeProcess/:typeDoc/new',
     validateURLParams('fileId', 'typeProcess', 'typeDoc'),
     checkAuth,
-    allowRoles(['commercial', 'admin']),
+    allowRoles(['auditor', 'commercial', 'admin']),
     uploadPdf.single('file'),
     async (req, res, next) => {
         /*
@@ -659,7 +659,7 @@ router.delete(
     '/docs/:typeDoc/:docId',
     validateURLParams('typeDoc', 'docId'),
     checkAuth,
-    allowRoles(['commercial', 'admin']),
+    allowRoles(['auditor', 'commercial', 'admin']),
     async (req, res, next) => {
         /*
          #swagger.tags = ['Documents']
